@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>耐圧期限</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6EF;
+    --card:#FFFFFF;
+    --ink:#4A4340;
+    --ink-soft:#9C948C;
+    --line:#EFE7DA;
+
+    --mint:#8FD9C4;      --mint-dark:#5FBFA5;      --mint-ink:#12503F;
+    --peach:#FFC9A6;     --peach-dark:#FF9F6B;     --peach-ink:#7A3E12;
+    --lavender:#D3C6F5;  --lavender-dark:#B4A0E8;  --lavender-ink:#3B2E63;
+    --sky:#AEDDF2;       --sky-dark:#7FC2E3;       --sky-ink:#0B4A66;
+    --pink:#FFC1D3;      --pink-dark:#FF97B3;      --pink-ink:#A6395E;
+    --butter:#FFE39B;    --butter-dark:#F5C542;    --butter-ink:#6B4E00;
+
+    --radius:16px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic Medium",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body{ padding-bottom:40px; }
+
+  header{
+    position:sticky;
+    top:0;
+    z-index:10;
+    background:linear-gradient(90deg,#EADFFB 0%,#DCEFFB 55%,#DFF5EC 100%);
+    border-bottom:1px solid var(--line);
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+
+  header .date{
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink);
+    flex:0 0 auto;
+  }
+
+  .nav-btn{
+    border:1.5px solid #FFFFFF;
+    background:#FFFFFFB0;
+    color:var(--ink);
+    border-radius:999px;
+    padding:9px 16px;
+    font-size:13.5px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+  }
+
+  .nav-btn.active-mint{ background:var(--mint); color:var(--mint-ink); border-color:var(--mint-dark); }
+  .nav-btn.active-peach{ background:var(--peach); color:var(--peach-ink); border-color:var(--peach-dark); }
+
+  main{ max-width:520px; margin:0 auto; padding:16px; }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  h2{
+    font-size:15px;
+    font-weight:700;
+    margin:20px 0 10px;
+    color:var(--ink);
+    position:relative;
+    padding-left:14px;
+  }
+  h2::before{
+    content:"";
+    position:absolute;
+    left:0; top:5px;
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--mint-dark);
+  }
+  h2:first-child{ margin-top:4px; }
+  h2.h2-flex{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .h2-note{ font-size:12px; font-weight:400; color:var(--ink-soft); white-space:nowrap; }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:0 2px 10px rgba(80,60,30,0.05);
+  }
+
+  .field{ margin-bottom:14px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{ display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px; }
+
+  input[type=text], input[type=number], input[type=date], select{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:11px 12px;
+    font-size:15px;
+    font-family:inherit;
+    background:#FFFDF9;
+    color:var(--ink);
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  input[type=date]{ min-height:46px; }
+
+  input:focus, select:focus{
+    outline:none;
+    border-color:var(--lavender-dark);
+    background:#fff;
+  }
+
+  .btn{
+    display:block;
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    font-size:15px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+    text-align:center;
+  }
+
+  .btn-lavender{ background:var(--lavender); color:var(--lavender-ink); }
+  .btn-mint{ background:var(--mint); color:var(--mint-ink); }
+  .btn-peach{ background:var(--peach); color:var(--peach-ink); }
+  .btn-sky{ background:var(--sky); color:var(--sky-ink); }
+  .btn-outline-mint{ background:#fff; color:var(--mint-ink); border:1.5px solid var(--mint); }
+  .btn-outline-pink{ background:#fff; color:var(--pink-ink); border:1.5px solid var(--pink); }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .btn-mini{ border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; font-family:inherit; color:var(--ink); cursor:pointer; white-space:nowrap; }
+  .btn-mini.danger{ color:var(--pink-ink); border-color:var(--pink); }
+
+  .master-bar{ display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12px; color:var(--ink-soft); }
+
+  .row-gap{ display:flex; gap:10px; }
+  .row-gap > *{ flex:1; }
+
+  .mode-switch{ display:flex; background:#F2EEE4; border-radius:999px; padding:4px; gap:4px; margin-bottom:10px; }
+  .mode-switch-btn{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:10px;
+    border-radius:999px;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .mode-switch-btn.active{ background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+
+  .chip-group{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:12px; }
+  .chip{
+    padding:9px 2px;
+    text-align:center;
+    white-space:nowrap;
+    border-radius:999px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:12.5px;
+    font-family:inherit;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .chip.active{ background:var(--butter); border-color:var(--butter-dark); color:var(--butter-ink); font-weight:700; }
+
+  .item{
+    display:flex; align-items:center; gap:10px;
+    width:100%; text-align:left;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:5px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    font-family:inherit; color:var(--ink);
+    cursor:pointer;
+  }
+  .item.st-expired{ border-left-color:#E26D6D; }
+  .item.st-soon{ border-left-color:var(--butter-dark); }
+  .item.st-unknown{ border-left-color:#C9C2B8; }
+  .item.st-ok{ border-left-color:var(--mint); }
+  .item-main{ flex:1; min-width:0; }
+  .item-title{ font-size:15px; font-weight:700; }
+  .item-sub{ font-size:12px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item-right{ text-align:right; flex:0 0 auto; }
+  .item-date{ font-size:14px; font-weight:700; }
+
+  .pill{ display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:#F2EEE4; color:var(--ink-soft); }
+  .pill.expired{ background:#FBE3E3; color:#A33A3A; }
+  .pill.soon{ background:#FFF1C9; color:var(--butter-ink); }
+  .pill.unknown{ background:#EEEAE4; color:#7A726A; }
+  .pill.pending{ background:#E9E3FB; color:var(--lavender-ink); }
+  .pill.sent{ background:#E4F1EC; color:var(--mint-ink); }
+  .pill.fill{ background:#DCEFFB; color:var(--sky-ink); }
+  .pill.research{ background:#FBE3E3; color:#A33A3A; }
+  .hidden{ display:none !important; }
+
+  .detail-row{ display:flex; justify-content:space-between; gap:10px; font-size:13.5px; padding:6px 0; border-bottom:1px solid var(--line); }
+  .detail-row:last-child{ border-bottom:none; }
+  .detail-row span:first-child{ color:var(--ink-soft); flex:0 0 auto; }
+  .detail-row span:last-child{ text-align:right; }
+
+  .sub-item{ display:flex; justify-content:space-between; gap:8px; font-size:13px; padding:7px 0; border-bottom:1px solid var(--line); }
+  .sub-item:last-child{ border-bottom:none; }
+  .sub-item button{ border:none; background:none; padding:0; font-family:inherit; font-size:13px; color:var(--sky-ink); text-decoration:underline; cursor:pointer; text-align:left; white-space:nowrap; flex:0 0 auto; }
+  .sub-item > span{ text-align:right; }
+
+  .note{ font-size:12px; color:var(--ink-soft); line-height:1.6; }
+  .msg{ font-size:12.5px; margin-top:8px; min-height:16px; }
+  .msg.err{ color:#C24141; }
+
+  .empty{ text-align:center; color:var(--ink-soft); font-size:13.5px; padding:26px 10px; }
+
+  .footer-actions{ margin:14px 0 6px; display:flex; flex-direction:column; gap:10px; }
+
+  .toast{
+    position:fixed;
+    left:50%; bottom:24px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:#fff;
+    padding:11px 18px;
+    border-radius:999px;
+    font-size:13.5px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:50;
+    white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="date" id="dateDisplay"></span>
+  <button class="nav-btn" id="navListButton">一覧</button>
+  <button class="nav-btn" id="navSearchButton">探す</button>
+</header>
+
+<main>
+
+  <!-- ============ 一覧画面 ============ -->
+  <section id="listScreen" class="screen active">
+
+    <div class="card">
+      <div class="master-bar">
+        <span id="dataStatus">一覧：未取り込み</span>
+        <button type="button" class="btn-mini" id="importButton">取り込む</button>
+      </div>
+      <input type="file" id="importFile" accept=".csv,text/csv,text/plain" style="display:none;">
+      <div class="msg" id="importMessage"></div>
+    </div>
+
+    <div class="mode-switch" id="kindSwitch">
+      <button class="mode-switch-btn active" data-kind="all">すべて</button>
+      <button class="mode-switch-btn" data-kind="vessel">ベッセル</button>
+      <button class="mode-switch-btn" data-kind="cardle">カードル</button>
+    </div>
+
+    <div class="chip-group" id="statusChips">
+      <button class="chip active" data-status="expired">期限切れ <span></span></button>
+      <button class="chip" data-status="soon">3か月以内 <span></span></button>
+      <button class="chip" data-status="unknown">要確認 <span></span></button>
+      <button class="chip" data-status="research">調査が必要 <span></span></button>
+      <button class="chip" data-status="fill">充填 <span></span></button>
+      <button class="chip" data-status="all">すべて <span></span></button>
+    </div>
+
+    <div id="itemList"></div>
+
+    <div class="footer-actions">
+      <button class="btn btn-lavender" id="cardleNewButton">新規登録</button>
+      <button class="btn btn-mint" id="sendButton">Accessへ送る</button>
+    </div>
+
+    <h2 class="h2-flex"><span>送信待ち・送信済み</span><span class="h2-note" id="pendingCount"></span></h2>
+    <div id="pendingList"></div>
+
+    <h2>入力者</h2>
+    <div class="card">
+      <div class="field">
+        <label for="userName">名前（Accessへ送るデータに載ります）</label>
+        <input type="text" id="userName" placeholder="例：山田" autocomplete="off">
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ============ 探す画面 ============ -->
+  <section id="searchScreen" class="screen">
+
+    <div class="card">
+      <div class="row-gap">
+        <div class="field"><label for="fGas">ガス種</label><select id="fGas"></select></div>
+        <div class="field"><label for="fKigo">記号</label><select id="fKigo"></select></div>
+        <div class="field"><label for="fBango">番号</label><select id="fBango"></select></div>
+      </div>
+      <p class="note" style="margin:-6px 0 12px;">ガス種を選ぶとその記号だけ、記号を選ぶとその番号だけが出ます。</p>
+      <div class="field">
+        <label for="searchInput">または記号番号を入れる（例：AB-1、T100、BN 12）</label>
+        <input type="text" id="searchInput" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      </div>
+      <button class="btn btn-sky" id="searchButton">探す</button>
+      <div class="msg" id="searchMessage"></div>
+    </div>
+
+    <div id="searchResults"></div>
+
+  </section>
+
+
+  <!-- ============ 新規登録画面（カードル・ベッセル・炭酸ベッセル） ============ -->
+  <section id="cardleScreen" class="screen">
+
+    <h2>新規登録</h2>
+    <div class="mode-switch" id="regKindSwitch">
+      <button class="mode-switch-btn active" data-reg="カードル">カードル</button>
+      <button class="mode-switch-btn" data-reg="ベッセル">ベッセル</button>
+      <button class="mode-switch-btn" data-reg="炭酸ベッセル">炭酸ベッセル</button>
+    </div>
+    <div class="card">
+      <div class="row-gap">
+        <div class="field">
+          <label for="cdKigo">記号</label>
+          <input type="text" id="cdKigo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例：BN">
+        </div>
+        <div class="field">
+          <label for="cdBango">番号</label>
+          <input type="number" id="cdBango" inputmode="numeric" placeholder="例：21">
+        </div>
+      </div>
+      <div class="row-gap">
+        <div class="field">
+          <label for="cdGas">ガス種</label>
+          <select id="cdGas"></select>
+        </div>
+        <div class="field reg-cardle">
+          <label for="cdKosei">構成</label>
+          <input type="text" id="cdKosei" autocomplete="off" placeholder="例：7㎥×20本">
+        </div>
+        <div class="field reg-vessel">
+          <label for="cdYoryo">容量（㎥・任意）</label>
+          <input type="number" id="cdYoryo" inputmode="decimal" placeholder="例：175">
+        </div>
+      </div>
+      <div class="row-gap">
+        <div class="field">
+          <label for="cdSeizo">製造年（任意）</label>
+          <input type="number" id="cdSeizo" inputmode="numeric" placeholder="例：2017">
+        </div>
+        <div class="field">
+          <label for="cdSeizoM">製造月（任意）</label>
+          <select id="cdSeizoM"></select>
+        </div>
+      </div>
+      <div class="row-gap">
+        <div class="field">
+          <label for="cdEigyo">営業所</label>
+          <select id="cdEigyo"></select>
+        </div>
+        <div class="field reg-cardle">
+          <label for="cdNensu">耐圧年数</label>
+          <select id="cdNensu">
+            <option value="">分からない</option>
+            <option value="3">3年</option>
+            <option value="5">5年</option>
+          </select>
+        </div>
+        <div class="field reg-vessel">
+          <label for="cdShoyu">所有者</label>
+          <select id="cdShoyu"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="cdKigen">次回の耐圧期限（分かれば）</label>
+        <input type="date" id="cdKigen">
+      </div>
+      <div class="field">
+        <label for="cdSource">期限の出所</label>
+        <select id="cdSource"></select>
+      </div>
+      <button class="btn btn-lavender" id="cdSaveButton">登録する（送信待ちに入れる）</button>
+      <div class="msg" id="cdMessage"></div>
+    </div>
+    <p class="note" id="regNote"></p>
+
+  </section>
+
+
+  <!-- ============ バラ瓶を足す画面（カードルの中） ============ -->
+  <section id="baraScreen" class="screen">
+
+    <h2>バラ瓶を足す</h2>
+    <div class="card">
+      <div class="detail-row"><span>入れるカードル</span><span id="baraCardle"></span></div>
+      <div class="detail-row"><span>入っている本数</span><span id="baraCount"></span></div>
+    </div>
+    <div class="card">
+      <div class="row-gap">
+        <div class="field">
+          <label for="bKigo">記号</label>
+          <input type="text" id="bKigo" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="bBango">番号</label>
+          <input type="number" id="bBango" inputmode="numeric">
+        </div>
+      </div>
+      <div class="row-gap">
+        <div class="field">
+          <label for="bSeizo">製造年（任意）</label>
+          <input type="number" id="bSeizo" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="bSeizoM">製造月（任意）</label>
+          <select id="bSeizoM"></select>
+        </div>
+      </div>
+      <div class="row-gap">
+        <div class="field">
+          <label for="bKigen">耐圧期限（分かれば）</label>
+          <input type="date" id="bKigen">
+        </div>
+        <div class="field">
+          <label for="bSource">期限の出所</label>
+          <select id="bSource"></select>
+        </div>
+      </div>
+      <button class="btn btn-lavender" id="bSaveButton">入れる（続けて次の1本へ）</button>
+      <div class="msg" id="bMessage"></div>
+      <button class="btn btn-sky" id="bDoneButton" style="margin-top:8px;">終わる（カードルの画面へ）</button>
+    </div>
+    <p class="note">記号は、1本目は空欄、2本目からは直前に入れた記号が自動で入ります。台帳や送信待ちにもうある記号番号は入れられません。カードルの本数を超えては入れられません。ガス種と容量はカードルと同じにします。</p>
+
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+/* =========================================================
+   保存データ（日報アプリと混ざらないよう、名前は yoki で始める）
+========================================================= */
+
+const ITEMS_KEY = "yokiItems";
+const PENDING_KEY = "yokiPending";
+const USER_KEY = "yokiUserName";
+const SOON_MONTHS = 3;
+
+function loadJson(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  }catch(e){
+    return fallback;
+  }
+}
+
+function saveJson(key, value){
+  try{
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  }catch(e){
+    showToast("保存できませんでした");
+    return false;
+  }
+}
+
+// yokiItems：{ importedAt, fileName, items:[...] }
+let store = loadJson(ITEMS_KEY, { importedAt:"", fileName:"", items:[] });
+// yokiPending：[{ id, type, kubun, kigo, bango, kigen, nensu, gas, kosei, seizo, at, user, sent, sentAt }]
+let pending = loadJson(PENDING_KEY, []);
+
+let viewKind = "all";
+let viewStatus = "expired";
+
+
+/* =========================================================
+   共通関数
+========================================================= */
+
+function showToast(message){
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+function escapeHtml(str){
+  return String(str == null ? "" : str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function pad2(n){ return String(n).padStart(2, "0"); }
+
+function updateDate(){
+  const d = new Date();
+  const week = ["日","月","火","水","木","金","土"][d.getDay()];
+  document.getElementById("dateDisplay").textContent =
+    `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}（${week}）`;
+}
+
+// 記号は全角→半角・大文字にそろえる。番号は数字にして先頭の0を消す
+function normKigo(s){
+  return String(s || "").normalize("NFKC").toUpperCase().replace(/\s+/g, "");
+}
+
+function normBango(s){
+  const digits = String(s || "").normalize("NFKC").replace(/[^0-9]/g, "");
+  return digits ? String(Number(digits)) : "";
+}
+
+function isCardleKubun(kubun){ return kubun === "カードル"; }
+
+function itemKey(kubun, kigo, bango){
+  return (isCardleKubun(kubun) ? "C:" : "Y:") + normKigo(kigo) + "-" + normBango(bango);
+}
+
+// "2029/4/30" "2029-04-30" などを Date に。分からなければ null
+function parseDate(s){
+  const m = String(s || "").normalize("NFKC").match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);
+  if(!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return isNaN(d) ? null : d;
+}
+
+function formatDate(d){
+  if(!d) return "";
+  return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`;
+}
+
+function todayStart(){
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function nowText(){
+  const d = new Date();
+  return `${formatDate(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+function getStatus(kigenText){
+  const d = parseDate(kigenText);
+  if(!d) return "unknown";
+  const today = todayStart();
+  if(d < today) return "expired";
+  const soon = new Date(today.getFullYear(), today.getMonth() + SOON_MONTHS, today.getDate());
+  if(d <= soon) return "soon";
+  return "ok";
+}
+
+const STATUS_LABEL = { expired:"期限切れ", soon:"3か月以内", unknown:"要確認", ok:"" };
+
+// 期限の出所（Access の表 M_期限出所 と同じ名前・同じ順。ベッセルは刻印→日本気化器ネット情報の順に見る）
+const KIGEN_SOURCES = ["刻印", "日本気化器ネット情報"];
+function sourceOptionsHtml(selected){
+  return KIGEN_SOURCES.map(s => `<option value="${escapeHtml(s)}"${s === selected ? " selected" : ""}>${escapeHtml(s)}</option>`).join("") +
+    `<option value=""${selected === "" ? " selected" : ""}>分からない</option>`;
+}
+
+
+/* =========================================================
+   CSV（読み込み・書き出し）
+========================================================= */
+
+function parseCsv(text){
+  const rows = [];
+  let row = [], field = "", inQuote = false;
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(inQuote){
+      if(ch === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuote = false;
+      }else field += ch;
+    }else if(ch === '"') inQuote = true;
+    else if(ch === ","){ row.push(field); field = ""; }
+    else if(ch === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+    else if(ch !== "\r") field += ch;
+  }
+  if(field !== "" || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ""));
+}
+
+function csvCell(v){
+  const s = String(v == null ? "" : v);
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+// Access の書き出しは UTF-8 か Shift_JIS のどちらか。先に UTF-8 で読んでみる
+function decodeText(buffer){
+  const bytes = new Uint8Array(buffer);
+  try{
+    return new TextDecoder("utf-8", { fatal:true }).decode(bytes).replace(/^﻿/, "");
+  }catch(e){
+    try{ return new TextDecoder("shift_jis").decode(bytes); }
+    catch(e2){ return new TextDecoder("utf-8").decode(bytes); }
+  }
+}
+
+// 見出しの名前で列を探す（Access 側で列の順番が変わっても読めるように）
+const IMPORT_COLUMNS = {
+  kubun:["区分"], kigo:["記号"], bango:["番号"], gas:["ガス種"], yoryo:["容量・構成","容量","構成"],
+  eigyo:["営業所"], seizoY:["製造年"], seizoM:["製造月"], seizoEst:["製造月推定","製造月_推定"],
+  kigen:["耐圧期限"], kensa:["検査日"], kensaEst:["検査日推定"], nensu:["耐圧年数"],
+  cKigo:["カードル記号"], cBango:["カードル番号"], kijun:["期限の基準"], kumikomi:["組込本数"],
+  ownKigen:["カードル入力期限"], shoyu:["所有者"], biko:["備考"], yoryoNum:["容量"], tani:["単位"],
+  source:["期限の出所"], yoso:["予想耐圧期限"], yosoKijun:["予想の基準"], jotai:["状態"]
+};
+
+function buildItems(rows){
+  const head = rows[0].map(h => h.trim().replace(/^﻿/, ""));
+  const col = {};
+  Object.keys(IMPORT_COLUMNS).forEach(k => {
+    col[k] = head.findIndex(h => IMPORT_COLUMNS[k].includes(h));
+  });
+  if(col.kubun < 0 || col.kigo < 0 || col.bango < 0 || col.kigen < 0){
+    throw new Error("見出しに「区分」「記号」「番号」「耐圧期限」がありません。Accessの「スマホ用書き出し」で作ったファイルを選んでください。");
+  }
+  const get = (r, k) => col[k] >= 0 ? String(r[col[k]] == null ? "" : r[col[k]]).trim() : "";
+  const items = [];
+  rows.slice(1).forEach(r => {
+    const kubun = get(r, "kubun");
+    const kigo = normKigo(get(r, "kigo"));
+    const bango = normBango(get(r, "bango"));
+    if(!kubun || !kigo || !bango) return;
+    items.push({
+      kubun, kigo, bango,
+      gas:get(r, "gas"), yoryo:get(r, "yoryo"), eigyo:get(r, "eigyo"),
+      seizoY:get(r, "seizoY"), seizoM:get(r, "seizoM"), seizoEst:get(r, "seizoEst"),
+      kigen:formatDate(parseDate(get(r, "kigen"))),
+      kensa:get(r, "kensa"), kensaEst:get(r, "kensaEst"), nensu:get(r, "nensu"),
+      cKigo:normKigo(get(r, "cKigo")), cBango:normBango(get(r, "cBango")),
+      kijun:get(r, "kijun"), kumikomi:get(r, "kumikomi"),
+      ownKigen:formatDate(parseDate(get(r, "ownKigen"))),
+      shoyu:get(r, "shoyu"), biko:get(r, "biko"), yoryoNum:get(r, "yoryoNum"), tani:get(r, "tani"),
+      source:get(r, "source"), yoso:formatDate(parseDate(get(r, "yoso"))), yosoKijun:get(r, "yosoKijun"),
+      jotai:get(r, "jotai")
+    });
+  });
+  return items;
+}
+
+
+/* =========================================================
+   取り込み（Access で書き出した一覧のファイル）
+========================================================= */
+
+function setImportMessage(text, isErr){
+  const el = document.getElementById("importMessage");
+  el.textContent = text || "";
+  el.classList.toggle("err", !!isErr);
+}
+
+document.getElementById("importButton").addEventListener("click", () => {
+  document.getElementById("importFile").click();
+});
+
+document.getElementById("importFile").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if(!file) return;
+  try{
+    const rows = parseCsv(decodeText(await file.arrayBuffer()));
+    if(rows.length < 2) throw new Error("ファイルに一覧が入っていません。");
+    const items = buildItems(rows);
+    if(!items.length) throw new Error("読み取れる行がありませんでした。");
+
+    const unsent = pending.filter(p => !p.sent).length;
+    if(unsent && !confirm(`まだ送っていない入力が${unsent}件あります。\n取り込んでも、送っていない入力は残ります。続けますか？`)) return;
+
+    store = { importedAt: nowText(), fileName: file.name, items };
+    // 送信済みの入力は、Access の最新の値に置き換わったものとして消す
+    const sentCount = pending.filter(p => p.sent).length;
+    pending = pending.filter(p => !p.sent);
+    saveJson(ITEMS_KEY, store);
+    saveJson(PENDING_KEY, pending);
+    setImportMessage(`${items.length}件を取り込みました。` + (sentCount ? `送信済み${sentCount}件はAccessの値に置き換えました。` : ""));
+    renderAll();
+  }catch(err){
+    setImportMessage(err.message || "読み取れませんでした。", true);
+  }
+});
+
+
+/* =========================================================
+   一覧（送信待ちの入力を重ねて表示する）
+========================================================= */
+
+function latestPendingFor(key){
+  for(let i = pending.length - 1; i >= 0; i--){
+    const p = pending[i];
+    if(p.type === "期限" && itemKey(p.kubun, p.kigo, p.bango) === key) return p;
+  }
+  return null;
+}
+
+// 新規登録（送信待ち・送信済みでまだAccessの一覧にないもの）
+const REG_TYPES = ["カードル登録", "容器登録"];
+function isReg(p){ return REG_TYPES.includes(p.type); }
+function regKubun(p){ return p.type === "カードル登録" ? "カードル" : p.kubun; }
+
+function itemFromReg(p){
+  const isC = p.type === "カードル登録";
+  return { kubun:regKubun(p), kigo:p.kigo, bango:p.bango, gas:p.gas || "",
+    yoryo:isC ? (p.kosei || "") : (p.yoryoNum ? p.yoryoNum + (p.tani || "") : ""), yoryoNum:p.yoryoNum || "", tani:p.tani || "",
+    eigyo:p.eigyo || "", shoyu:p.shoyu || "", seizoY:p.seizo || "", seizoM:p.seizoM || "", seizoEst:"",
+    kigen:p.kigen || "", ownKigen:isC ? (p.kigen || "") : "", nensu:p.nensu || "", cKigo:p.cKigo || "", cBango:p.cBango || "",
+    source:p.source || "", biko:"", jotai:"", isNew:true, reg:p };
+}
+
+function regItems(){
+  return pending.filter(p => isReg(p) && !findItem(regKubun(p), p.kigo, p.bango)).map(itemFromReg);
+}
+
+// Access の一覧＋新規登録（一覧を取り込んでいなくても使える）
+function allItems(){ return store.items.concat(regItems()); }
+
+function findAny(kubun, kigo, bango){
+  const key = itemKey(kubun, kigo, bango);
+  return allItems().find(it => itemKey(it.kubun, it.kigo, it.bango) === key) || null;
+}
+
+function baraOf(c){
+  return allItems().filter(b => b.kubun === "バラ瓶" && b.cKigo === c.kigo && b.cBango === c.bango);
+}
+
+// 「7㎥×20本」→ 本数 20、1本の容量 7
+function koseiHonsu(kosei){
+  const m = String(kosei || "").normalize("NFKC").match(/[×xX*]\s*(\d+)/);
+  return m ? Number(m[1]) : null;
+}
+function koseiYoryo(kosei){
+  const m = String(kosei || "").normalize("NFKC").match(/^\s*([\d.]+)/);
+  return m ? m[1] : "";
+}
+
+function isResearch(it){ return /【調査が必要】/.test(String(withFixes(it).e.biko || it.biko || "")); }
+
+// 画面に出す1件（Access の値に、送信待ちの期限を重ねる）
+function viewOf(item){
+  const p = latestPendingFor(itemKey(item.kubun, item.kigo, item.bango));
+  let v;
+  if(isCardleKubun(item.kubun)){
+    v = cardleViewOf(item, p);
+  }else{
+    const kigen = p ? p.kigen : item.kigen;
+    v = { item, kigen, yoso:kigen ? "" : item.yoso, pendingEntry:p, status:getStatus(kigen) };
+  }
+  if(item.isNew && !v.pendingEntry) v.pendingEntry = item.reg;
+  return v;
+}
+
+// カードルの期限＝中のバラ瓶の一番早い期限と、カードルに入れた期限の早い方（送信待ちも含めて計算し直す）
+function cardleViewOf(item, p){
+  const bara = baraOf(item);
+  const changed = item.isNew || bara.some(b => b.isNew || latestPendingFor(itemKey(b.kubun, b.kigo, b.bango)));
+  if(!p && !changed){
+    return { item, kigen:item.kigen, yoso:item.kigen ? "" : item.yoso, kijun:item.kigen ? item.kijun : item.yosoKijun, pendingEntry:null, status:getStatus(item.kigen) };
+  }
+  let best = null, kijun = "";
+  const own = parseDate(p ? p.kigen : item.ownKigen);
+  if(own){ best = own; kijun = "カードル入力"; }
+  bara.forEach(b => {
+    const bp = latestPendingFor(itemKey(b.kubun, b.kigo, b.bango));
+    const d = parseDate(bp ? bp.kigen : b.kigen);
+    if(d && (!best || d < best)){ best = d; kijun = `バラ瓶 ${b.kigo}-${b.bango}`; }
+  });
+  const kigen = formatDate(best);
+  const pendingEntry = p || bara.map(b => latestPendingFor(itemKey(b.kubun, b.kigo, b.bango)) || (b.isNew ? b.reg : null)).find(x => x) || null;
+  return { item, kigen, yoso:kigen ? "" : item.yoso, kijun, pendingEntry, status:getStatus(kigen) };
+}
+
+function listViews(){
+  return allItems().filter(it => it.kubun !== "バラ瓶").map(viewOf);
+}
+
+function kindMatch(v){
+  if(viewKind === "all") return true;
+  if(viewKind === "cardle") return isCardleKubun(v.item.kubun);
+  return !isCardleKubun(v.item.kubun);
+}
+
+// 入力済の期限 → 予想耐圧期限 → どちらもない の順（入力済と予想は混ぜない）
+function sortViews(a, b){
+  const da = parseDate(a.kigen), db = parseDate(b.kigen);
+  if(da && db) return da - db;
+  if(da) return -1;
+  if(db) return 1;
+  const ya = parseDate(a.yoso), yb = parseDate(b.yoso);
+  if(ya && yb) return ya - yb;
+  if(ya) return -1;
+  if(yb) return 1;
+  return (a.item.kigo + a.item.bango.padStart(8, "0")).localeCompare(b.item.kigo + b.item.bango.padStart(8, "0"));
+}
+
+function pendingPill(p){
+  if(!p) return "";
+  return p.sent ? '<span class="pill sent">送信済み</span>' : '<span class="pill pending">送信待ち</span>';
+}
+
+function itemTitle(it){ return `${it.kigo}-${it.bango}`; }
+
+function itemSub(it, kijun){
+  const e = withFixes(it).e;
+  const parts = [it.kubun];
+  if(e.gas) parts.push(e.gas);
+  if(e.yoryo) parts.push(e.yoryo);
+  kijun = kijun == null ? it.kijun : kijun;
+  if(isCardleKubun(it.kubun) && kijun) parts.push("基準 " + kijun);
+  return parts.join("・");
+}
+
+function renderList(){
+  const status = document.getElementById("dataStatus");
+  status.textContent = store.items.length
+    ? `一覧 ${store.items.filter(i => i.kubun !== "バラ瓶").length}件（${store.importedAt.slice(5, 10)} 取り込み）`
+    : "一覧：未取り込み";
+
+  const views = listViews().filter(kindMatch);
+  const counts = { expired:0, soon:0, unknown:0, research:0, fill:0, all:views.length };
+  views.forEach(v => {
+    if(counts[v.status] != null) counts[v.status]++;
+    if(isResearch(v.item)) counts.research++;
+    if(v.item.jotai === "充填") counts.fill++;
+  });
+  document.querySelectorAll("#statusChips .chip").forEach(chip => {
+    chip.classList.toggle("active", chip.dataset.status === viewStatus);
+    chip.querySelector("span").textContent = counts[chip.dataset.status];
+  });
+
+  const match = v => viewStatus === "all" ? true
+    : viewStatus === "research" ? isResearch(v.item)
+    : viewStatus === "fill" ? v.item.jotai === "充填"
+    : v.status === viewStatus;
+  const shown = views.filter(match).sort(sortViews);
+  const box = document.getElementById("itemList");
+  if(!store.items.length && !shown.length){
+    box.innerHTML = '<div class="empty">Accessで書き出した一覧のファイルを「取り込む」から選んでください。一覧がなくても「新規登録」はできます。</div>';
+    return;
+  }
+  if(!shown.length){
+    box.innerHTML = '<div class="empty">当てはまる容器はありません。</div>';
+    return;
+  }
+  box.innerHTML = shown.map(itemButtonHtml).join("");
+}
+
+// 一覧・探すの結果の1行
+function itemButtonHtml(v){
+  return `
+    <button class="item st-${v.status}" data-kubun="${escapeHtml(v.item.kubun)}" data-kigo="${escapeHtml(v.item.kigo)}" data-bango="${escapeHtml(v.item.bango)}">
+      <span class="item-main">
+        <span class="item-title">${escapeHtml(itemTitle(v.item))}</span>
+        <span class="item-sub" style="display:block;">${escapeHtml(itemSub(v.item, v.kijun))}</span>
+      </span>
+      <span class="item-right">
+        <span class="item-date" style="display:block;">${v.kigen ? escapeHtml(v.kigen) : v.yoso ? `<span style="color:#7A726A;font-weight:normal;">予想 ${escapeHtml(v.yoso)}</span>` : "期限なし"}</span>
+        ${v.status !== "ok" ? `<span class="pill ${v.status}">${STATUS_LABEL[v.status]}</span>` : ""}
+        ${v.item.jotai === "充填" ? '<span class="pill fill">充填</span>' : ""}
+        ${isResearch(v.item) ? '<span class="pill research">調査が必要</span>' : ""}
+        ${v.item.isNew ? '<span class="pill pending">新規</span>' : ""}
+        ${pendingPill(v.pendingEntry)}
+      </span>
+    </button>`;
+}
+
+document.getElementById("itemList").addEventListener("click", e => {
+  const btn = e.target.closest(".item");
+  if(!btn) return;
+  openDetail(btn.dataset.kubun, btn.dataset.kigo, btn.dataset.bango);
+});
+
+document.querySelectorAll("#kindSwitch .mode-switch-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    viewKind = btn.dataset.kind;
+    document.querySelectorAll("#kindSwitch .mode-switch-btn").forEach(b => b.classList.toggle("active", b === btn));
+    renderList();
+  });
+});
+
+document.querySelectorAll("#statusChips .chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    viewStatus = chip.dataset.status;
+    renderList();
+  });
+});
+
+
+/* =========================================================
+   探す・詳細・期限の入力
+========================================================= */
+
+function findItem(kubunOrGroup, kigo, bango){
+  const key = itemKey(kubunOrGroup, kigo, bango);
+  return store.items.find(it => itemKey(it.kubun, it.kigo, it.bango) === key) || null;
+}
+
+// 「AB-1」「T19919」「BN 12」→ 記号と番号に分ける。数字がなければ記号だけ
+function splitQuery(q){
+  const s = normKigo(q);
+  const m = s.match(/^(.*?)[-‐－]?(\d+)$/);
+  if(!m) return { kigo:s.replace(/[-‐－]+$/, ""), bango:"" };
+  return { kigo:m[1].replace(/[-‐－]+$/, ""), bango:String(Number(m[2])) };
+}
+
+function setSearchMessage(text, isErr){
+  const el = document.getElementById("searchMessage");
+  el.textContent = text || "";
+  el.classList.toggle("err", !!isErr);
+}
+
+function renderHits(hits){
+  const box = document.getElementById("searchResults");
+  box.innerHTML = "";
+  if(!hits.length){ setSearchMessage("見つかりませんでした。", true); return; }
+  setSearchMessage(hits.length > 1 ? `${hits.length}件見つかりました。` : "");
+  if(hits.length === 1){ renderDetail(hits[0]); return; }
+  box.innerHTML = hits.map(viewOf).sort(sortViews).slice(0, 100).map(itemButtonHtml).join("") +
+    (hits.length > 100 ? '<p class="note">100件まで出しています。もっとしぼってください。</p>' : "");
+}
+
+function runSearch(){
+  const { kigo, bango } = splitQuery(document.getElementById("searchInput").value);
+  if(!kigo && !bango){ setSearchMessage("記号番号を入れてください。", true); return; }
+  const pool = allItems();
+  const hits = bango
+    ? pool.filter(it => it.bango === bango && (!kigo || it.kigo === kigo))
+    : pool.filter(it => it.kigo === kigo && it.kubun !== "バラ瓶");
+  renderHits(hits);
+}
+
+// ガス種 → 記号 → 番号 の絞り込み（カードル・ベッセル。新規登録も含む）
+function filterPool(){ return allItems().filter(it => it.kubun !== "バラ瓶"); }
+
+function setOptions(sel, values, label){
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${label}</option>` + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+  sel.value = values.includes(cur) ? cur : "";
+}
+
+function fillFilters(){
+  const gasSel = document.getElementById("fGas"), kigoSel = document.getElementById("fKigo"), bangoSel = document.getElementById("fBango");
+  const pool = filterPool();
+  setOptions(gasSel, [...new Set(pool.map(it => withFixes(it).e.gas).filter(Boolean))].sort(), "すべて");
+  const g = gasSel.value;
+  const byGas = pool.filter(it => !g || withFixes(it).e.gas === g);
+  setOptions(kigoSel, [...new Set(byGas.map(it => it.kigo))].sort(), "すべて");
+  const k = kigoSel.value;
+  setOptions(bangoSel, [...new Set(byGas.filter(it => !k || it.kigo === k).map(it => it.bango))].sort((a, b) => Number(a) - Number(b)), "すべて");
+}
+
+function runFilter(){
+  fillFilters();
+  const g = document.getElementById("fGas").value, k = document.getElementById("fKigo").value, b = document.getElementById("fBango").value;
+  if(!g && !k && !b){ document.getElementById("searchResults").innerHTML = ""; setSearchMessage(""); return; }
+  renderHits(filterPool().filter(it => (!g || withFixes(it).e.gas === g) && (!k || it.kigo === k) && (!b || it.bango === b)));
+}
+
+["fGas", "fKigo", "fBango"].forEach((id, i) => {
+  document.getElementById(id).addEventListener("change", () => {
+    if(i === 0){ document.getElementById("fKigo").value = ""; document.getElementById("fBango").value = ""; }
+    if(i === 1){ document.getElementById("fBango").value = ""; }
+    document.getElementById("searchInput").value = "";
+    runFilter();
+  });
+});
+
+document.getElementById("searchButton").addEventListener("click", runSearch);
+document.getElementById("searchInput").addEventListener("keydown", e => {
+  if(e.key === "Enter"){ e.preventDefault(); runSearch(); }
+});
+document.getElementById("searchResults").addEventListener("click", e => {
+  const btn = e.target.closest(".item");
+  if(btn){ openDetail(btn.dataset.kubun, btn.dataset.kigo, btn.dataset.bango); return; }
+  const link = e.target.closest("[data-open]");
+  if(link){
+    const [kubun, kigo, bango] = link.dataset.open.split("|");
+    openDetail(kubun, kigo, bango);
+  }
+});
+
+function openDetail(kubun, kigo, bango){
+  const it = findAny(kubun, kigo, bango);
+  if(!it) return;
+  document.getElementById("searchInput").value = `${it.kigo}-${it.bango}`;
+  setSearchMessage("");
+  goToSearch();
+  renderDetail(it);
+}
+
+function seizoText(it){
+  if(!it.seizoY) return "";
+  const est = /^(1|true|yes|はい|-1)$/i.test(String(it.seizoEst || "")) ? "＊" : "";
+  return it.seizoM ? `${it.seizoY}.${pad2(it.seizoM)}${est}` : `${it.seizoY}${est}`;
+}
+
+function detailRow(label, value){
+  return value ? `<div class="detail-row"><span>${escapeHtml(label)}</span><span>${value}</span></div>` : "";
+}
+
+function renderDetail(it){
+  const v = viewOf(it);
+  const isCardle = isCardleKubun(it.kubun);
+  const { e, fixed } = withFixes(it);
+  const kensa = it.kensa ? escapeHtml(it.kensa.slice(0, 7)) + (/^(1|true|yes|はい|-1)$/i.test(String(it.kensaEst || "")) ? "＊" : "") : "";
+  const statusPill = v.status !== "ok" ? ` <span class="pill ${v.status}">${STATUS_LABEL[v.status]}</span>` : "";
+  const mark = name => fixed.has(name) ? ' <span class="pill pending">訂正</span>' : "";
+  const seizoFixed = fixed.has("製造年") || fixed.has("製造月");
+
+  let html = `<div class="card">
+    <div class="item-title" style="font-size:17px;margin-bottom:6px;">${escapeHtml(itemTitle(it))} ${pendingPill(v.pendingEntry)}${it.isNew ? ' <span class="pill pending">新規</span>' : ""}</div>
+    ${detailRow("区分", escapeHtml(it.kubun))}
+    ${detailRow("ガス種", escapeHtml(e.gas) + mark("ガス種"))}
+    ${isCardle ? detailRow("構成", escapeHtml(it.yoryo)) : detailRow("容量", escapeHtml(e.yoryo) + mark("容量"))}
+    ${detailRow("営業所", escapeHtml(e.eigyo) + mark("営業所"))}
+    ${isCardle ? "" : detailRow("所有者", escapeHtml(e.shoyu) + mark("所有者"))}
+    ${detailRow(isCardle ? "製造年（期限には使わない）" : "製造年月", escapeHtml(seizoText(e)) + (seizoFixed ? ' <span class="pill pending">訂正</span>' : ""))}
+    ${detailRow("備考", escapeHtml(e.biko) + mark("備考"))}
+    ${it.jotai === "充填" ? detailRow("状態", '<span class="pill fill">充填</span>') : ""}
+    <div class="detail-row"><span>耐圧期限（入力済）</span><span><b>${escapeHtml(v.kigen || "なし")}</b>${statusPill}</span></div>
+    ${v.kigen ? detailRow("期限の出所", escapeHtml(v.pendingEntry && v.pendingEntry.type === "期限" ? (v.pendingEntry.source || "分からない") : it.source)) : ""}
+    ${v.yoso ? detailRow("予想耐圧期限", `${escapeHtml(v.yoso)} <span class="pill unknown">予想</span>`) : ""}
+    ${v.yoso && !isCardle ? detailRow("予想の基準", escapeHtml(it.yosoKijun || "製造年から")) : ""}
+    ${v.pendingEntry && it.kigen && v.pendingEntry.kigen !== it.kigen ? detailRow("Accessの期限", escapeHtml(it.kigen)) : ""}
+    ${detailRow("検査日（逆算）", kensa)}
+    ${detailRow("耐圧年数", it.nensu ? escapeHtml(it.nensu) + "年" : "")}
+    ${isCardle ? detailRow("期限の基準", escapeHtml(v.kijun == null ? it.kijun : v.kijun)) : ""}
+    ${isCardle && v.pendingEntry ? '<div class="note" style="margin-top:6px;">送信待ちを含めて計算した期限です。検査日・耐圧年数はAccessで計算し直します。</div>' : ""}
+    ${it.kubun === "バラ瓶" && it.cKigo ? `<div class="detail-row"><span>入っているカードル</span><span><button class="btn-mini" data-open="カードル|${escapeHtml(it.cKigo)}|${escapeHtml(it.cBango)}">${escapeHtml(it.cKigo)}-${escapeHtml(it.cBango)}</button></span></div>` : ""}
+  </div>`;
+
+  if(isCardle){
+    const bara = baraOf(it).map(viewOf).sort(sortViews);
+    const honsu = koseiHonsu(it.yoryo);
+    html += `<h2 class="h2-flex"><span>中のバラ瓶（${bara.length}本${honsu ? "／" + honsu + "本" : ""}）</span><span class="h2-note">期限の早い順</span></h2>`;
+    html += bara.length
+      ? `<div class="card">${bara.map(b => `<div class="sub-item">
+           <button data-open="バラ瓶|${escapeHtml(b.item.kigo)}|${escapeHtml(b.item.bango)}">${escapeHtml(itemTitle(b.item))}</button>
+           <span>${escapeHtml(seizoText(b.item))}　${b.kigen ? `<b>${escapeHtml(b.kigen)}</b>` : b.yoso ? `<span style="color:#7A726A;">予想 ${escapeHtml(b.yoso)}</span>` : "<b>期限なし</b>"} ${b.item.isNew ? '<span class="pill pending">新規</span>' : pendingPill(b.pendingEntry)}</span>
+         </div>`).join("")}</div>`
+      : '<div class="card note">バラ瓶は入っていません（カードルの期限を使います）。入れなくてもかまいません。</div>';
+    const full = honsu && bara.length >= honsu;
+    html += `<button class="btn btn-lavender" id="baraAddButton"${full ? " disabled" : ""}>${full ? "本数いっぱいです（" + honsu + "本）" : "バラ瓶を足す"}</button>`;
+  }
+
+  html += `<h2>次回の耐圧期限を入れる</h2>
+    <div class="card">
+      <div class="field">
+        <label for="kigenInput">新しい耐圧期限</label>
+        <input type="date" id="kigenInput">
+      </div>
+      <div class="field">
+        <label for="kigenSource">期限の出所（刻印が読めないときは日本気化器のネット情報）</label>
+        <select id="kigenSource">${sourceOptionsHtml("刻印")}</select>
+      </div>
+      <button class="btn btn-mint" id="kigenSaveButton">入力する（送信待ちに入れる）</button>
+      <div class="msg" id="kigenMessage"></div>
+      <p class="note" style="margin:8px 0 0;">検査日は入れません。Accessで期限から逆算します。</p>
+    </div>`;
+
+  html += fixFormHtml(it, e);
+
+  const box = document.getElementById("searchResults");
+  box.innerHTML = html;
+  document.getElementById("kigenSaveButton").addEventListener("click", () => saveKigen(it, v));
+  const fixButton = document.getElementById("fixSaveButton");
+  if(fixButton) fixButton.addEventListener("click", () => saveFixes(it));
+  const baraButton = document.getElementById("baraAddButton");
+  if(baraButton) baraButton.addEventListener("click", () => openBara(it));
+}
+
+
+/* =========================================================
+   内容を直す（製造年・製造月・ガス種・容量・営業所・所有者・備考）
+   直した項目ごとに送信待ちを1件作る。Access では「訂正」として取り込み、訂正履歴に残す。
+========================================================= */
+
+const FIX_ITEMS_CONTAINER = ["製造年","製造月","ガス種","容量","営業所","所有者","備考"];
+const FIX_ITEMS_CARDLE = ["製造年","製造月","ガス種","営業所","備考"];
+const EIGYO_OPTIONS = ["札幌","苫小牧","釧路"];
+const SHOYU_OPTIONS = ["自社","昭和電工"];
+const TANI_OPTIONS = ["㎥","kg","L"];
+
+function isTrueFlag(v){ return /^(1|true|yes|はい|-1)$/i.test(String(v || "")); }
+
+// Access の値を、Access の取り込みと同じ書き方の文字にする（「変更前」に入れる）
+function accessValue(it, name){
+  switch(name){
+    case "製造年": return it.seizoY || "";
+    case "製造月": return isTrueFlag(it.seizoEst) ? "" : (it.seizoM || "");
+    case "ガス種": return it.gas || "";
+    case "容量": return it.yoryoNum ? it.yoryoNum + (it.tani || "") : "";
+    case "営業所": return it.eigyo || "";
+    case "所有者": return it.shoyu || "";
+    case "備考": return it.biko || "";
+  }
+  return "";
+}
+
+function latestFix(it, name){
+  const key = itemKey(it.kubun, it.kigo, it.bango);
+  for(let i = pending.length - 1; i >= 0; i--){
+    const p = pending[i];
+    if(p.type === "訂正" && p.item === name && itemKey(p.kubun, p.kigo, p.bango) === key) return p;
+  }
+  return null;
+}
+
+function splitYoryo(text){
+  const m = String(text || "").match(/^\s*([0-9.]+)\s*(.*)$/);
+  return m ? { num:m[1], tani:m[2] } : { num:"", tani:"" };
+}
+
+// 送信待ちの訂正を重ねた値（画面に出す用）
+function withFixes(it){
+  const e = Object.assign({}, it);
+  const fixed = new Set();
+  const items = isCardleKubun(it.kubun) ? FIX_ITEMS_CARDLE : FIX_ITEMS_CONTAINER;
+  items.forEach(name => {
+    const p = latestFix(it, name);
+    if(!p) return;
+    fixed.add(name);
+    const val = p.after;
+    if(name === "製造年") e.seizoY = val;
+    if(name === "製造月"){ e.seizoM = val; e.seizoEst = val ? "" : "1"; }
+    if(name === "ガス種") e.gas = val;
+    if(name === "容量"){ const y = splitYoryo(val); e.yoryoNum = y.num; e.tani = y.tani; e.yoryo = val; }
+    if(name === "営業所") e.eigyo = val;
+    if(name === "所有者") e.shoyu = val;
+    if(name === "備考") e.biko = val;
+  });
+  return { e, fixed };
+}
+
+function gasOptionsFor(it){
+  if(it.kubun === "ベッセル") return ["酸素","窒素"];
+  if(it.kubun === "炭酸ベッセル") return ["炭酸"];
+  return ["酸素","窒素","アルゴン","アルコミック","混合ガス"];
+}
+
+// ガス種を直せないとき、その理由
+function gasLockReason(it){
+  if(it.kubun === "炭酸ベッセル") return "炭酸ベッセルのガス種は変えられません";
+  if(it.kubun === "バラ瓶" && it.cKigo) return "カードルに入っている容器のガス種はAccessで変えます";
+  if(isCardleKubun(it.kubun) && store.items.some(b => b.kubun === "バラ瓶" && b.cKigo === it.kigo && b.cBango === it.bango)) return "バラ瓶が入っているカードルのガス種はAccessで変えます";
+  return "";
+}
+
+function optionsHtml(list, current, withBlank){
+  const all = list.slice();
+  if(current && !all.includes(current)) all.unshift(current);
+  return (withBlank ? '<option value=""></option>' : "") +
+    all.map(o => `<option value="${escapeHtml(o)}"${o === current ? " selected" : ""}>${escapeHtml(o)}</option>`).join("");
+}
+
+function fixFormHtml(it, e){
+  const isCardle = isCardleKubun(it.kubun);
+  const lock = gasLockReason(it);
+  const months = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+  const monthNow = isTrueFlag(e.seizoEst) ? "" : String(e.seizoM || "");
+  return `<h2>内容を直す</h2>
+    <div class="card">
+      <div class="row-gap">
+        <div class="field"><label for="fx製造年">製造年（西暦）</label><input type="number" id="fx製造年" inputmode="numeric" value="${escapeHtml(e.seizoY || "")}"></div>
+        <div class="field"><label for="fx製造月">製造月（空欄＝分からない）</label><select id="fx製造月">${optionsHtml(months, monthNow, true)}</select></div>
+      </div>
+      <div class="row-gap">
+        <div class="field"><label for="fxガス種">ガス種</label><select id="fxガス種"${lock ? " disabled" : ""}>${optionsHtml(gasOptionsFor(it), e.gas || "", !e.gas)}</select></div>
+        <div class="field"><label for="fx営業所">営業所</label><select id="fx営業所">${optionsHtml(EIGYO_OPTIONS, e.eigyo || "", !e.eigyo)}</select></div>
+      </div>
+      ${lock ? `<p class="note" style="margin:-6px 0 10px;">${escapeHtml(lock)}</p>` : ""}
+      ${isCardle ? "" : `<div class="row-gap">
+        <div class="field"><label for="fx容量">容量</label><input type="number" id="fx容量" inputmode="decimal" value="${escapeHtml(e.yoryoNum || "")}"></div>
+        <div class="field"><label for="fx単位">単位</label><select id="fx単位">${optionsHtml(TANI_OPTIONS, e.tani || "", !e.tani)}</select></div>
+      </div>
+      <div class="field"><label for="fx所有者">所有者</label><select id="fx所有者">${optionsHtml(SHOYU_OPTIONS, e.shoyu || "", !e.shoyu)}</select></div>`}
+      <div class="field"><label for="fx備考">備考</label><input type="text" id="fx備考" value="${escapeHtml(e.biko || "")}" autocomplete="off"></div>
+      <div class="field"><label for="fx理由">理由（任意。例：刻印で確認）</label><input type="text" id="fx理由" autocomplete="off"></div>
+      <button class="btn btn-sky" id="fixSaveButton">直す（送信待ちに入れる）</button>
+      <div class="msg" id="fixMessage"></div>
+      <p class="note" style="margin:8px 0 0;">直した項目だけを送ります。Accessでは確認画面で「確定」したときに直り、訂正履歴に残ります。</p>
+    </div>`;
+}
+
+function readFixForm(it){
+  // 数字の欄だけ全角→半角にそろえる（「㎥」などの単位や備考の文字は変えない）
+  const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : null; };
+  const out = {};
+  out["製造年"] = normBango(val("fx製造年"));
+  out["製造月"] = val("fx製造月");
+  const gasEl = document.getElementById("fxガス種");
+  if(gasEl && !gasEl.disabled) out["ガス種"] = gasEl.value;
+  out["営業所"] = val("fx営業所");
+  out["備考"] = val("fx備考");
+  if(!isCardleKubun(it.kubun)){
+    const num = val("fx容量").normalize("NFKC");
+    out["容量"] = num ? String(Number(num)) + (val("fx単位") || "") : "";
+    out["所有者"] = val("fx所有者");
+  }
+  return out;
+}
+
+function saveFixes(it){
+  const msg = document.getElementById("fixMessage");
+  msg.classList.add("err");
+  const user = requireUser();
+  if(!user){ msg.textContent = "入力者の名前が入っていません（一覧の画面のいちばん下）。"; return; }
+  const values = readFixForm(it);
+  const y = values["製造年"];
+  if(y && (Number(y) < 1900 || Number(y) > new Date().getFullYear())){ msg.textContent = "製造年は西暦4けたで入れてください。"; return; }
+  if(values["容量"] !== undefined && document.getElementById("fx容量").value && !(Number(document.getElementById("fx容量").value) > 0)){ msg.textContent = "容量は0より大きい数で入れてください。"; return; }
+  if(values["備考"] && values["備考"].length > 255){ msg.textContent = "備考が長すぎます（255文字まで）。"; return; }
+  if(it.isNew && it.reg && !it.reg.sent){ applyRegFix(it, values); return; }
+  const reason = document.getElementById("fx理由").value.trim();
+  const { e } = withFixes(it);
+  const key = itemKey(it.kubun, it.kigo, it.bango);
+  let changed = 0;
+
+  Object.keys(values).forEach(name => {
+    const after = values[name];
+    if(after == null) return;
+    if(after === accessValue(e, name)) return;          // 今の表示から変わっていない
+    if(name === "製造年" && !after) return;              // 製造年は消せない
+    // 同じ項目の、まだ送っていない訂正は置き換える
+    pending = pending.filter(p => !(p.type === "訂正" && !p.sent && p.item === name && itemKey(p.kubun, p.kigo, p.bango) === key));
+    if(after !== accessValue(it, name)){
+      pending.push({ id:Date.now().toString(36) + name, type:"訂正", kubun:it.kubun, kigo:it.kigo, bango:it.bango,
+                     kigen:"", nensu:"", gas:"", kosei:"", seizo:"", item:name, before:accessValue(it, name), after, reason,
+                     at:nowText(), user, sent:false, sentAt:"" });
+    }
+    changed++;
+  });
+
+  if(!changed){ msg.textContent = "変わった項目がありません。"; return; }
+  saveJson(PENDING_KEY, pending);
+  showToast(`${changed}項目を送信待ちに入れました`);
+  renderAll();
+  renderDetail(it);
+}
+
+// 送信前の新規登録は、訂正を作らずに登録の内容を直す
+function applyRegFix(it, values){
+  const p = it.reg;
+  if(values["製造年"] != null) p.seizo = values["製造年"];
+  if(values["製造月"] != null) p.seizoM = values["製造月"];
+  if(values["営業所"] != null) p.eigyo = values["営業所"];
+  if(values["所有者"] != null) p.shoyu = values["所有者"];
+  if(values["容量"] != null){ const y = splitYoryo(values["容量"]); p.yoryoNum = y.num; p.tani = y.tani; }
+  if(values["ガス種"] && values["ガス種"] !== p.gas){
+    p.gas = values["ガス種"];
+    // 新しいカードルに足したバラ瓶も、カードルと同じガス種にする
+    if(p.type === "カードル登録") pending.filter(b => b.type === "容器登録" && b.kubun === "バラ瓶" && b.cKigo === p.kigo && b.cBango === p.bango && !b.sent).forEach(b => { b.gas = p.gas; });
+  }
+  p.at = nowText();
+  saveJson(PENDING_KEY, pending);
+  showToast("新規登録の内容を直しました");
+  renderAll();
+  renderDetail(findAny(it.kubun, it.kigo, it.bango) || it);
+}
+
+function checkKigen(newDate, oldText){
+  const today = todayStart();
+  const old = parseDate(oldText);
+  if(old && newDate < old && !confirm(`今の期限（${formatDate(old)}）より前の日付です。よろしいですか？`)) return false;
+  const limit = new Date(today.getFullYear() + 10, today.getMonth(), today.getDate());
+  if(newDate > limit && !confirm("10年より先の日付です。よろしいですか？")) return false;
+  if(newDate < today && !confirm("もう過ぎている日付です。よろしいですか？")) return false;
+  return true;
+}
+
+function requireUser(){
+  const name = document.getElementById("userName").value.trim();
+  if(!name){
+    showToast("先に一覧の画面で入力者の名前を入れてください");
+    return "";
+  }
+  return name;
+}
+
+function saveKigen(it, v){
+  const msg = document.getElementById("kigenMessage");
+  const d = parseDate(document.getElementById("kigenInput").value);
+  const source = document.getElementById("kigenSource").value;
+  msg.classList.add("err");
+  if(!d){ msg.textContent = "日付を選んでください。"; return; }
+  const user = requireUser();
+  if(!user){ msg.textContent = "入力者の名前が入っていません（一覧の画面のいちばん下）。"; return; }
+  if(!checkKigen(d, v.kigen)) return;
+
+  if(it.isNew && it.reg && !it.reg.sent){
+    // 送信前の新規登録は、登録内容の期限を直す
+    it.reg.kigen = formatDate(d); it.reg.source = source; it.reg.at = nowText();
+  }else{
+    // 同じ容器の、まだ送っていない入力は置き換える
+    pending = pending.filter(x => !(x.type === "期限" && !x.sent && itemKey(x.kubun, x.kigo, x.bango) === itemKey(it.kubun, it.kigo, it.bango)));
+    pending.push({ id:Date.now().toString(36), type:"期限", kubun:it.kubun, kigo:it.kigo, bango:it.bango,
+                   kigen:formatDate(d), nensu:"", gas:"", kosei:"", seizo:"", source, at:nowText(), user, sent:false, sentAt:"" });
+  }
+  saveJson(PENDING_KEY, pending);
+  showToast("送信待ちに入れました");
+  renderAll();
+  renderDetail(findAny(it.kubun, it.kigo, it.bango) || it);
+}
+
+
+/* =========================================================
+   新規登録（カードル・ベッセル・炭酸ベッセル）。元の一覧がなくても登録できる
+   台帳・送信待ちにもう同じ記号番号があるときは登録しない
+========================================================= */
+
+const MONTHS = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+const REG_GAS = { "カードル":["酸素","窒素","アルゴン","アルコミック","混合ガス"], "ベッセル":["酸素","窒素"], "炭酸ベッセル":["炭酸"] };
+let regKind = "カードル";
+
+function setCdMessage(text, isErr){
+  const el = document.getElementById("cdMessage");
+  el.textContent = text || "";
+  el.classList.toggle("err", !!isErr);
+}
+
+function setRegKind(kind){
+  regKind = kind;
+  const isC = kind === "カードル";
+  document.querySelectorAll("#regKindSwitch .mode-switch-btn").forEach(b => b.classList.toggle("active", b.dataset.reg === kind));
+  document.querySelectorAll("#cardleScreen .reg-cardle").forEach(el => el.classList.toggle("hidden", !isC));
+  document.querySelectorAll("#cardleScreen .reg-vessel").forEach(el => el.classList.toggle("hidden", isC));
+  const gases = REG_GAS[kind];
+  document.getElementById("cdGas").innerHTML = (gases.length > 1 ? '<option value="">選ぶ</option>' : "") + gases.map(g => `<option>${g}</option>`).join("");
+  document.getElementById("cdKigo").placeholder = isC ? "例：BN" : kind === "炭酸ベッセル" ? "例：T" : "例：N";
+  document.getElementById("regNote").textContent = isC
+    ? "カードルの製造年は記録として残しますが、耐圧期限には使いません。中のバラ瓶は、登録したあとカードルの画面の「バラ瓶を足す」で入れられます（入れなくてもかまいません）。"
+    : "耐圧期限が分からなければ空欄でかまいません。製造年があれば予想耐圧期限が出ます。";
+  setCdMessage("");
+}
+
+document.querySelectorAll("#regKindSwitch .mode-switch-btn").forEach(btn => {
+  btn.addEventListener("click", () => setRegKind(btn.dataset.reg));
+});
+
+document.getElementById("cardleNewButton").addEventListener("click", () => {
+  ["cdKigo","cdBango","cdKosei","cdYoryo","cdSeizo","cdKigen"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("cdNensu").value = "";
+  document.getElementById("cdSeizoM").innerHTML = optionsHtml(MONTHS, "", true);
+  document.getElementById("cdEigyo").innerHTML = optionsHtml(EIGYO_OPTIONS, "", true);
+  document.getElementById("cdShoyu").innerHTML = optionsHtml(SHOYU_OPTIONS, "自社", false);
+  document.getElementById("cdSource").innerHTML = sourceOptionsHtml("刻印");
+  setRegKind(regKind);
+  showScreen("cardle");
+  updateNav("cardle");
+});
+
+// 製造年・製造月を調べる。正しくなければ理由
+function checkSeizo(seizo, seizoM){
+  if(seizo && (Number(seizo) < 1950 || Number(seizo) > new Date().getFullYear())) return "製造年は西暦4けたで入れてください。";
+  if(seizoM && !seizo) return "製造月を入れるときは製造年も入れてください。";
+  return "";
+}
+
+// 台帳・送信待ちに同じ記号番号があるか（ベッセルとバラ瓶は同じ番号を使えない）
+function dupMessage(kubun, kigo, bango){
+  const hit = findAny(kubun, kigo, bango);
+  if(!hit) return "";
+  return `${kigo}-${bango} はもう${hit.isNew ? "送信待ち・送信済みに" : "台帳に"}あります（${hit.kubun}${hit.cKigo ? "・" + hit.cKigo + "-" + hit.cBango + " の中" : ""}）。`;
+}
+
+document.getElementById("cdSaveButton").addEventListener("click", () => {
+  const isC = regKind === "カードル";
+  const kigo = normKigo(document.getElementById("cdKigo").value);
+  const bango = normBango(document.getElementById("cdBango").value);
+  const gas = document.getElementById("cdGas").value;
+  const kosei = document.getElementById("cdKosei").value.trim().normalize("NFKC").replace(/[xX*＊]/g, "×").replace(/m3/gi, "㎥").replace(/×\s*(\d+)$/, "×$1本");
+  const yoryo = String(document.getElementById("cdYoryo").value || "").normalize("NFKC").trim();
+  const seizo = normBango(document.getElementById("cdSeizo").value);
+  const seizoM = document.getElementById("cdSeizoM").value;
+  const eigyo = document.getElementById("cdEigyo").value;
+  const shoyu = document.getElementById("cdShoyu").value;
+  const nensu = document.getElementById("cdNensu").value;
+  const kigen = parseDate(document.getElementById("cdKigen").value);
+  const source = document.getElementById("cdSource").value;
+
+  if(!kigo || !bango){ setCdMessage("記号と番号を入れてください。", true); return; }
+  if(!/^[A-Z0-9]+$/.test(kigo)){ setCdMessage("記号は英字と数字で入れてください（空白・記号は入れません）。", true); return; }
+  if(!gas){ setCdMessage("ガス種を選んでください。", true); return; }
+  if(isC && !kosei){ setCdMessage("構成を入れてください（例：7㎥×20本）。", true); return; }
+  if(isC && !koseiHonsu(kosei)){ setCdMessage("構成の本数が読めません（例：7㎥×20本）。", true); return; }
+  if(!isC && yoryo && !(Number(yoryo) > 0)){ setCdMessage("容量は0より大きい数で入れてください。", true); return; }
+  const se = checkSeizo(seizo, seizoM);
+  if(se){ setCdMessage(se, true); return; }
+  const dup = dupMessage(regKind, kigo, bango);
+  if(dup){ setCdMessage(dup + "期限は「探す」から入れてください。", true); return; }
+  const user = requireUser();
+  if(!user){ setCdMessage("入力者の名前が入っていません（一覧の画面のいちばん下）。", true); return; }
+  if(kigen && !checkKigen(kigen, "")) return;
+  if(!kigen && !confirm("耐圧期限なしで登録しますか？（あとで入れられます）")) return;
+
+  const base = { id:Date.now().toString(36), kigo, bango, kigen:formatDate(kigen), gas, seizo, seizoM, eigyo, source:kigen ? source : "",
+                 at:nowText(), user, sent:false, sentAt:"" };
+  if(isC) pending.push(Object.assign(base, { type:"カードル登録", kubun:"カードル", kosei, nensu }));
+  else pending.push(Object.assign(base, { type:"容器登録", kubun:regKind, yoryoNum:yoryo, tani:yoryo ? "㎥" : "", shoyu }));
+  saveJson(PENDING_KEY, pending);
+  showToast(`${kigo}-${bango} を送信待ちに入れました`);
+  renderAll();
+  openDetail(regKind, kigo, bango);
+});
+
+
+/* =========================================================
+   バラ瓶を足す（カードルの画面から）
+   記号は1本目は空欄、2本目からは直前に入れた記号。本数を超えない・同じ記号番号は入れない
+========================================================= */
+
+let baraCardle = null;
+
+function setBMessage(text, isErr){
+  const el = document.getElementById("bMessage");
+  el.textContent = text || "";
+  el.classList.toggle("err", !!isErr);
+}
+
+// このカードルで直前に入れたバラ瓶の記号（なければ空欄）
+function lastBaraKigo(c){
+  const regs = pending.filter(p => p.type === "容器登録" && p.kubun === "バラ瓶" && p.cKigo === c.kigo && p.cBango === c.bango);
+  if(regs.length) return regs[regs.length - 1].kigo;
+  const inStore = store.items.filter(b => b.kubun === "バラ瓶" && b.cKigo === c.kigo && b.cBango === c.bango);
+  return inStore.length ? inStore[inStore.length - 1].kigo : "";
+}
+
+function updateBaraCount(){
+  const honsu = koseiHonsu(baraCardle.yoryo);
+  const n = baraOf(baraCardle).length;
+  document.getElementById("baraCount").textContent = honsu ? `${n}本／${honsu}本` : `${n}本（本数が分かりません）`;
+  const full = honsu && n >= honsu;
+  document.getElementById("bSaveButton").disabled = !!full;
+  return full;
+}
+
+function openBara(c){
+  baraCardle = c;
+  document.getElementById("baraCardle").textContent = `${c.kigo}-${c.bango}（${withFixes(c).e.gas || "ガス種なし"}・${c.yoryo || "構成なし"}）`;
+  document.getElementById("bKigo").value = lastBaraKigo(c);
+  ["bBango","bSeizo","bKigen"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("bSeizoM").innerHTML = optionsHtml(MONTHS, "", true);
+  document.getElementById("bSource").innerHTML = sourceOptionsHtml("刻印");
+  setBMessage("");
+  if(updateBaraCount()) setBMessage("本数いっぱいです。", true);
+  showScreen("bara");
+  updateNav("bara");
+  document.getElementById(document.getElementById("bKigo").value ? "bBango" : "bKigo").focus();
+}
+
+document.getElementById("bSaveButton").addEventListener("click", () => {
+  const c = baraCardle;
+  const kigo = normKigo(document.getElementById("bKigo").value);
+  const bango = normBango(document.getElementById("bBango").value);
+  const seizo = normBango(document.getElementById("bSeizo").value);
+  const seizoM = document.getElementById("bSeizoM").value;
+  const kigen = parseDate(document.getElementById("bKigen").value);
+  const source = document.getElementById("bSource").value;
+  const gas = withFixes(c).e.gas;
+
+  if(!kigo || !bango){ setBMessage("記号と番号を入れてください。", true); return; }
+  if(!/^[A-Z0-9]+$/.test(kigo)){ setBMessage("記号は英字と数字で入れてください（空白・記号は入れません）。", true); return; }
+  if(!gas){ setBMessage("カードルのガス種が入っていません。先にカードルのガス種を入れてください。", true); return; }
+  const se = checkSeizo(seizo, seizoM);
+  if(se){ setBMessage(se, true); return; }
+  const dup = dupMessage("バラ瓶", kigo, bango);
+  if(dup){ setBMessage(dup, true); return; }
+  if(updateBaraCount()){ setBMessage("本数いっぱいです。", true); return; }
+  const user = requireUser();
+  if(!user){ setBMessage("入力者の名前が入っていません（一覧の画面のいちばん下）。", true); return; }
+  if(kigen && !checkKigen(kigen, "")) return;
+
+  const yoryo = koseiYoryo(c.yoryo);
+  pending.push({ id:Date.now().toString(36) + bango, type:"容器登録", kubun:"バラ瓶", kigo, bango, kigen:formatDate(kigen), gas,
+                 seizo, seizoM, yoryoNum:yoryo, tani:yoryo ? "㎥" : "", eigyo:"", shoyu:"", source:kigen ? source : "",
+                 cKigo:c.kigo, cBango:c.bango, at:nowText(), user, sent:false, sentAt:"" });
+  saveJson(PENDING_KEY, pending);
+  renderAll();
+  // 次の1本：記号は今の記号のまま、ほかは空欄
+  document.getElementById("bKigo").value = kigo;
+  ["bBango","bSeizo","bKigen"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("bSeizoM").value = "";
+  const full = updateBaraCount();
+  setBMessage(`${kigo}-${bango} を入れました。` + (full ? "本数いっぱいになりました。" : "続けて次の番号を入れてください。"));
+  document.getElementById("bMessage").classList.remove("err");
+  if(!full) document.getElementById("bBango").focus();
+});
+
+document.getElementById("bDoneButton").addEventListener("click", () => {
+  if(baraCardle) openDetail(baraCardle.kubun, baraCardle.kigo, baraCardle.bango);
+  else goToList();
+});
+
+
+/* =========================================================
+   送信待ち・送信済みの一覧
+========================================================= */
+
+function renderPending(){
+  const unsent = pending.filter(p => !p.sent);
+  document.getElementById("pendingCount").textContent = `送信待ち ${unsent.length}件`;
+  const sendButton = document.getElementById("sendButton");
+  sendButton.textContent = unsent.length ? `Accessへ送る（${unsent.length}件）` : "Accessへ送る";
+  sendButton.disabled = !unsent.length;
+
+  const box = document.getElementById("pendingList");
+  if(!pending.length){
+    box.innerHTML = '<div class="empty" style="padding:14px;">ありません。</div>';
+    return;
+  }
+  box.innerHTML = '<div class="card">' + pending.slice().reverse().map(p => `
+    <div class="sub-item">
+      <span>${pendingPill(p)} ${escapeHtml(isReg(p) ? "新規 " + regKubun(p) : p.type === "訂正" ? "訂正" : "期限")}　<b>${escapeHtml(p.kigo)}-${escapeHtml(p.bango)}</b>　${
+        p.type === "訂正" ? escapeHtml(`${p.item} ${p.before || "（空）"}→${p.after || "（空）"}`)
+        : escapeHtml((p.kigen || (isReg(p) ? "期限なし" : "")) + (p.source ? `（${p.source}）` : "") + (p.cKigo ? `　${p.cKigo}-${p.cBango} へ` : ""))}</span>
+      <button class="btn-mini danger" data-del="${escapeHtml(p.id)}">${p.sent ? "消す" : "取消"}</button>
+    </div>`).join("") + '</div>' +
+    '<p class="note">送信済みは、次にAccessの一覧を取り込むと自動で消えます。</p>';
+}
+
+document.getElementById("pendingList").addEventListener("click", e => {
+  const btn = e.target.closest("[data-del]");
+  if(!btn) return;
+  const p = pending.find(x => x.id === btn.dataset.del);
+  if(!p) return;
+  const what = `${p.kigo}-${p.bango}（${p.kigen || p.type}）`;
+  // 送る前の新しいカードルを取り消すときは、そこに足したバラ瓶も取り消す（Accessでエラーにならないように）
+  const kids = (!p.sent && p.type === "カードル登録")
+    ? pending.filter(b => b.type === "容器登録" && b.kubun === "バラ瓶" && b.cKigo === p.kigo && b.cBango === p.bango && !b.sent) : [];
+  if(!confirm(p.sent ? `${what} の記録を消しますか？（Accessには送ってあります）`
+    : `${what} の入力を取り消しますか？` + (kids.length ? `\n中に足したバラ瓶${kids.length}本も取り消します。` : ""))) return;
+  pending = pending.filter(x => x !== p && !kids.includes(x));
+  saveJson(PENDING_KEY, pending);
+  renderAll();
+});
+
+
+/* =========================================================
+   Accessへ送る（CSV をメールに添付）
+   列の並びは Access の取り込みに合わせてあるので、後から変えない。
+   足すときは右端に足す。
+========================================================= */
+
+const SEND_HEADER = ["種類","区分","記号","番号","耐圧期限","耐圧年数","ガス種","構成","製造年","入力日時","入力者","項目名","変更前","変更後","理由","期限の出所",
+                     "製造月","容量","単位","営業所","所有者","カードル記号","カードル番号"];
+
+function buildSendCsv(list){
+  const lines = [SEND_HEADER.join(",")];
+  list.forEach(p => {
+    lines.push([p.type, p.kubun, p.kigo, p.bango, p.kigen, p.nensu, p.gas, p.kosei, p.seizo, p.at, p.user,
+                p.item, p.before, p.after, p.reason, p.type === "訂正" ? "" : p.source,
+                p.seizoM, p.yoryoNum, p.tani, p.eigyo, p.shoyu, p.cKigo, p.cBango].map(csvCell).join(","));
+  });
+  return "﻿" + lines.join("\r\n") + "\r\n";
+}
+
+function markSent(list){
+  const at = nowText();
+  list.forEach(p => { p.sent = true; p.sentAt = at; });
+  saveJson(PENDING_KEY, pending);
+  renderAll();
+}
+
+document.getElementById("sendButton").addEventListener("click", async () => {
+  const list = pending.filter(p => !p.sent);
+  if(!list.length) return;
+  const user = requireUser();
+  if(!user) return;
+
+  const d = new Date();
+  const stamp = `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}`;
+  const safeUser = user.replace(/[\\\/:*?"<>|\s]/g, "");
+  const fileName = `耐圧期限_${stamp}_${safeUser}.csv`;
+  const blob = new Blob([buildSendCsv(list)], { type:"text/csv" });
+  const file = new File([blob], fileName, { type:"text/csv" });
+
+  if(navigator.canShare && navigator.canShare({ files:[file] })){
+    try{
+      await navigator.share({ files:[file], title:fileName });
+      markSent(list);
+      showToast(`${list.length}件を送信済みにしました`);
+    }catch(err){
+      if(err && err.name === "AbortError") showToast("送るのをやめました");
+      else showToast("共有できませんでした");
+    }
+    return;
+  }
+
+  // 「共有」でファイルを添付できない場合は、ファイルを保存して手で添付する
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  if(confirm(`「${fileName}」を保存しました。\nメールに添付して送れたら「OK」を押してください（送信済みにします）。`)){
+    markSent(list);
+  }
+});
+
+
+/* =========================================================
+   入力者の名前
+========================================================= */
+
+const userInput = document.getElementById("userName");
+userInput.value = (() => { try{ return localStorage.getItem(USER_KEY) || ""; }catch(e){ return ""; } })();
+userInput.addEventListener("change", () => {
+  try{ localStorage.setItem(USER_KEY, userInput.value.trim()); }catch(e){}
+  showToast("名前を保存しました");
+});
+
+
+/* =========================================================
+   画面切替
+========================================================= */
+
+function showScreen(name){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(name + "Screen").classList.add("active");
+  window.scrollTo({ top:0, behavior:"auto" });
+}
+
+function updateNav(screenName){
+  document.getElementById("navListButton").classList.toggle("active-mint", screenName === "list");
+  document.getElementById("navSearchButton").classList.toggle("active-peach", screenName === "search");
+}
+
+function goToList(){
+  renderAll();
+  showScreen("list");
+  updateNav("list");
+}
+
+function goToSearch(){
+  fillFilters();
+  showScreen("search");
+  updateNav("search");
+}
+
+document.getElementById("navListButton").addEventListener("click", goToList);
+document.getElementById("navSearchButton").addEventListener("click", () => {
+  goToSearch();
+  document.getElementById("searchInput").focus();
+});
+
+function renderAll(){
+  renderList();
+  renderPending();
+}
+
+updateDate();
+goToList();
+
+</script>
+</body>
+</html>
