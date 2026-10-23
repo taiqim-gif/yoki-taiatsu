@@ -175,7 +175,7 @@
   }
   .mode-switch-btn.active{ background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
 
-  .chip-group{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:12px; }
+  .chip-group{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:12px; }
   .chip{
     padding:9px 2px;
     text-align:center;
@@ -209,7 +209,7 @@
   .item-main{ flex:1; min-width:0; }
   .item-title{ font-size:15px; font-weight:700; }
   .item-sub{ font-size:12px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .item-right{ text-align:right; flex:0 0 auto; }
+  .item-right{ text-align:right; flex:0 1 auto; max-width:62%; }   /* 印が多いときは折り返す */
   .item-date{ font-size:14px; font-weight:700; }
 
   .pill{ display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:#F2EEE4; color:var(--ink-soft); }
@@ -220,7 +220,13 @@
   .pill.sent{ background:#E4F1EC; color:var(--mint-ink); }
   .pill.fill{ background:#DCEFFB; color:var(--sky-ink); }
   .pill.research{ background:#FBE3E3; color:#A33A3A; }
+  .pill.done{ background:#E4F1EC; color:var(--mint-ink); }
   .hidden{ display:none !important; }
+  /* 日付：数字で入れる欄＋カレンダーのボタン（透明な日付の欄を重ねて、押すとカレンダーが開く） */
+  .date-combo{ display:flex; gap:8px; align-items:stretch; }
+  .date-combo .date-text{ flex:1; min-width:0; }
+  .date-cal, .field label.date-cal{ position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin:0; line-height:1; padding:0 12px; border-radius:12px; background:var(--sky); color:var(--sky-ink); font-size:13px; font-weight:700; overflow:hidden; cursor:pointer; }
+  .date-cal input[type=date]{ position:absolute; inset:0; width:100%; height:100%; min-height:0; opacity:0; border:none; padding:0; margin:0; cursor:pointer; }
 
   .detail-row{ display:flex; justify-content:space-between; gap:10px; font-size:13.5px; padding:6px 0; border-bottom:1px solid var(--line); }
   .detail-row:last-child{ border-bottom:none; }
@@ -256,15 +262,59 @@
     white-space:nowrap;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* 天気(日付の横)。日報アプリと同じ見た目 */
+  header{ flex-wrap:wrap; }
+  header .nav-btn{ flex:1 1 0; min-width:0; text-align:center; }
+  .datebox{ display:flex; flex:0 0 100%; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+  .wx-btn{ flex:none; display:flex; align-items:center; gap:4px; border:none; background:transparent; font-family:inherit; padding:0; cursor:pointer; touch-action:pan-y; }
+  .wx-btn[hidden]{ display:none; }
+  .wx-stale{ font-size:10px; color:var(--ink-soft); }
+  .wx-stale[hidden]{ display:none; }
+  .wx-grid{ display:grid; grid-template-columns:repeat(3, 52px); row-gap:1px; text-align:center; }
+  .wx-r1{ color:#0B7A7A; font-size:15px; font-weight:700; white-space:pre; overflow:hidden; line-height:22px; height:22px; }
+  .wx-grid.icons .wx-r1{ font-size:17px; }
+  .wx-ic[data-ic="☀"]{ color:#E8890C; }   /* 晴れ=だいだい */
+  .wx-ic[data-ic="☁"]{ color:#7D8A96; }   /* くもり=灰色 */
+  .wx-ic[data-ic="☂"]{ color:#1F6FD1; }   /* 雨=青 */
+  .wx-ic[data-ic="❄"]{ color:#2A9FD6; }   /* 雪=水色 */
+  .wx-ic[data-ic="⚡"]{ color:#C99700; }   /* 雷=黄色 */
+  .wx-grid.temp .wx-r1{ font-size:13px; }
+  .wx-pc{ font-size:13px; }
+  .wx-pv.dry{ font-size:12px; }               /* 降水確率 30%未満：小さく */
+  .wx-pv.dry .wx-pc{ font-size:11px; }
+  .wx-pv.wet, .wx-pv.wet .wx-pc{ color:#D62E2E; }   /* 30%以上：赤 */
+  .wx-r2{ color:#5B4A9E; font-size:11px; font-weight:700; line-height:1.2; }
+  .wx-grid.flip .wx-r1{ animation:wxFlip .4s ease-out; }
+  @keyframes wxFlip{ from{ transform:perspective(220px) rotateX(-80deg); opacity:0; } to{ transform:perspective(220px) rotateX(0); opacity:1; } }
+  @media (prefers-reduced-motion: reduce){ .wx-grid.flip .wx-r1{ animation:none; } }
+  .wx-sheet{ position:fixed; left:0; right:0; bottom:0; z-index:120; background:#fff; border-top:2px solid var(--line); border-radius:16px 16px 0 0; padding:14px 16px 20px; box-shadow:0 -6px 20px rgba(0,0,0,0.15); max-height:75vh; overflow-y:auto; }
+  .wx-sheet[hidden]{ display:none; }
+  .wx-sheet h3{ margin:0 0 8px; font-size:16px; }
+  .wx-tbl{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:13px; margin-top:6px; }
+  .wx-tbl th, .wx-tbl td{ border:1px solid var(--line); padding:6px 4px; text-align:center; vertical-align:middle; overflow-wrap:anywhere; }
+  .wx-tbl thead th{ background:#F3EFFC; color:#5B4A9E; }
+  .wx-tbl tbody th{ background:#FAF6EF; color:var(--ink-soft); font-weight:400; width:26%; }
+  .wx-sub{ font-size:12px; color:var(--ink-soft); margin-top:12px; }
+  .wx-note{ font-size:11.5px; color:var(--ink-soft); margin-top:8px; line-height:1.5; }
+  .wx-speed{ display:grid; grid-template-columns:1fr 1fr; gap:4px; background:#F2EEE4; border-radius:14px; padding:4px; margin-top:6px; }
+  .wx-speed button{ border:none; background:transparent; padding:9px 4px; border-radius:10px; font-family:inherit; font-size:13px; font-weight:700; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
+  .wx-speed button.on{ background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .wx-btns{ display:flex; gap:10px; margin-top:12px; }
+  .wx-btns .btn{ margin:0; }
 </style>
 </head>
 <body>
 
 <header>
-  <span class="date" id="dateDisplay"></span>
+  <div class="datebox">
+    <span class="date" id="dateDisplay"></span>
+    <button type="button" class="wx-btn" id="wxButton" hidden><span class="wx-stale" hidden>--</span><span class="wx-grid"><span class="wx-r1"></span><span class="wx-r1"></span><span class="wx-r1"></span><span class="wx-r2"></span><span class="wx-r2"></span><span class="wx-r2"></span></span></button>
+  </div>
   <button class="nav-btn" id="navListButton">一覧</button>
   <button class="nav-btn" id="navSearchButton">探す</button>
 </header>
+<div class="wx-sheet" id="wxSheet" hidden></div>
 
 <main>
 
@@ -290,8 +340,9 @@
       <button class="chip active" data-status="expired">期限切れ <span></span></button>
       <button class="chip" data-status="soon">3か月以内 <span></span></button>
       <button class="chip" data-status="unknown">要確認 <span></span></button>
-      <button class="chip" data-status="research">調査が必要 <span></span></button>
+      <button class="chip" data-status="research">要調査 <span></span></button>
       <button class="chip" data-status="fill">充填 <span></span></button>
+      <button class="chip" data-status="notyet">未入力 <span></span></button>
       <button class="chip" data-status="all">すべて <span></span></button>
     </div>
 
@@ -326,9 +377,15 @@
         <div class="field"><label for="fBango">番号</label><select id="fBango"></select></div>
       </div>
       <p class="note" style="margin:-6px 0 12px;">ガス種を選ぶとその記号だけ、記号を選ぶとその番号だけが出ます。</p>
-      <div class="field">
-        <label for="searchInput">または記号番号を入れる（例：AB-1、T100、BN 12）</label>
-        <input type="text" id="searchInput" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <div class="row-gap">
+        <div class="field">
+          <label for="sKigo">または記号（英数字）</label>
+          <input type="text" id="sKigo" class="code-input" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="例：AB">
+        </div>
+        <div class="field">
+          <label for="sBango">番号（数字。英字も可）</label>
+          <input type="text" id="sBango" class="code-input" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="例：12">
+        </div>
       </div>
       <button class="btn btn-sky" id="searchButton">探す</button>
       <div class="msg" id="searchMessage"></div>
@@ -402,8 +459,8 @@
         </div>
       </div>
       <div class="field">
-        <label for="cdKigen">次回の耐圧期限（分かれば）</label>
-        <input type="date" id="cdKigen">
+        <label for="cdKigen">次回の耐圧期限（分かれば。数字でも可：20290930、202909＝月末）</label>
+        <div class="date-combo"><input type="text" id="cdKigen" class="date-text" inputmode="numeric" autocomplete="off" placeholder="例：2029/09/30"><label class="date-cal">カレンダー<input type="date" class="date-pick" data-for="cdKigen" tabindex="-1" aria-label="カレンダーで選ぶ"></label></div>
       </div>
       <div class="field">
         <label for="cdSource">期限の出所</label>
@@ -446,10 +503,10 @@
           <select id="bSeizoM"></select>
         </div>
       </div>
-      <div class="row-gap">
+      <div>
         <div class="field">
-          <label for="bKigen">耐圧期限（分かれば）</label>
-          <input type="date" id="bKigen">
+          <label for="bKigen">耐圧期限（分かれば。数字でも可：20290930、202909＝月末）</label>
+          <div class="date-combo"><input type="text" id="bKigen" class="date-text" inputmode="numeric" autocomplete="off" placeholder="例：2029/09/30"><label class="date-cal">カレンダー<input type="date" class="date-pick" data-for="bKigen" tabindex="-1" aria-label="カレンダーで選ぶ"></label></div>
         </div>
         <div class="field">
           <label for="bSource">期限の出所</label>
@@ -556,6 +613,25 @@ function parseDate(s){
   return isNaN(d) ? null : d;
 }
 
+// 入力された日付を読む：2029/09/30、2029-9-30、20290930、2029年9月30日。日がなければ月末（202909、2029/9）
+const DATE_ERR = "日付が読めません（例：2029/09/30、20290930、202909＝月末）。";
+function parseDateInput(s){
+  const v = String(s || "").normalize("NFKC").trim().replace(/[年月.\-]/g, "/").replace(/日/g, "").replace(/\s+/g, "");
+  let m, y, mo, d = 0;
+  if((m = v.match(/^(\d{4})(\d{2})(\d{2})$/))){ y = +m[1]; mo = +m[2]; d = +m[3]; }
+  else if((m = v.match(/^(\d{4})(\d{2})$/))){ y = +m[1]; mo = +m[2]; }
+  else if((m = v.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/))){ y = +m[1]; mo = +m[2]; d = +m[3]; }
+  else if((m = v.match(/^(\d{4})\/(\d{1,2})\/?$/))){ y = +m[1]; mo = +m[2]; }
+  else return null;
+  if(y < 1900 || mo < 1 || mo > 12) return null;
+  const last = new Date(y, mo, 0).getDate();
+  if(!d) d = last;
+  if(d < 1 || d > last) return null;
+  return new Date(y, mo - 1, d);
+}
+
+function isoDate(d){ return d ? `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}` : ""; }
+
 function formatDate(d){
   if(!d) return "";
   return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`;
@@ -589,6 +665,38 @@ function sourceOptionsHtml(selected){
   return KIGEN_SOURCES.map(s => `<option value="${escapeHtml(s)}"${s === selected ? " selected" : ""}>${escapeHtml(s)}</option>`).join("") +
     `<option value=""${selected === "" ? " selected" : ""}>分からない</option>`;
 }
+
+
+// カレンダーを開く前に、入れてある日付を合わせる。選んだら数字の欄に書く。欄を離れたら書き方をそろえる
+function syncPicker(e){
+  const pick = e.target.closest && e.target.closest(".date-pick");
+  if(!pick) return;
+  pick.value = isoDate(parseDateInput(document.getElementById(pick.dataset.for).value));
+}
+document.addEventListener("focusin", syncPicker);
+document.addEventListener("pointerdown", syncPicker);
+document.addEventListener("change", e => {
+  const pick = e.target.closest && e.target.closest(".date-pick");
+  if(!pick) return;
+  const d = parseDate(pick.value);
+  if(d) document.getElementById(pick.dataset.for).value = formatDate(d);
+});
+document.addEventListener("focusout", e => {
+  if(!e.target.classList || !e.target.classList.contains("date-text")) return;
+  const d = parseDateInput(e.target.value);
+  if(d) e.target.value = formatDate(d);
+});
+
+// 記号・番号の欄：全角→半角、小文字→大文字、英数字以外は消す（日本語入力の途中は待つ）
+function codeText(s){ return String(s || "").normalize("NFKC").toUpperCase().replace(/[^0-9A-Z]/g, ""); }
+document.addEventListener("input", e => {
+  if(!e.target.classList || !e.target.classList.contains("code-input") || e.isComposing) return;
+  const v = codeText(e.target.value);
+  if(v !== e.target.value) e.target.value = v;
+});
+document.addEventListener("compositionend", e => {
+  if(e.target.classList && e.target.classList.contains("code-input")) e.target.value = codeText(e.target.value);
+});
 
 
 /* =========================================================
@@ -637,7 +745,8 @@ const IMPORT_COLUMNS = {
   kigen:["耐圧期限"], kensa:["検査日"], kensaEst:["検査日推定"], nensu:["耐圧年数"],
   cKigo:["カードル記号"], cBango:["カードル番号"], kijun:["期限の基準"], kumikomi:["組込本数"],
   ownKigen:["カードル入力期限"], shoyu:["所有者"], biko:["備考"], yoryoNum:["容量"], tani:["単位"],
-  source:["期限の出所"], yoso:["予想耐圧期限"], yosoKijun:["予想の基準"], jotai:["状態"]
+  source:["期限の出所"], yoso:["予想耐圧期限"], yosoKijun:["予想の基準"], jotai:["状態"],
+  phoneAt:["スマホ入力日"], phoneUser:["スマホ入力者"]
 };
 
 function buildItems(rows){
@@ -667,7 +776,7 @@ function buildItems(rows){
       ownKigen:formatDate(parseDate(get(r, "ownKigen"))),
       shoyu:get(r, "shoyu"), biko:get(r, "biko"), yoryoNum:get(r, "yoryoNum"), tani:get(r, "tani"),
       source:get(r, "source"), yoso:formatDate(parseDate(get(r, "yoso"))), yosoKijun:get(r, "yosoKijun"),
-      jotai:get(r, "jotai")
+      jotai:get(r, "jotai"), phoneAt:formatDate(parseDate(get(r, "phoneAt"))), phoneUser:get(r, "phoneUser")
     });
   });
   return items;
@@ -767,6 +876,38 @@ function koseiYoryo(kosei){
   return m ? m[1] : "";
 }
 
+// スマホで最後に入力した日と人：Access の履歴（一覧の「スマホ入力日・入力者」）と、このスマホの送信待ち・送信済みの新しい方
+// カードルは、中のバラ瓶への入力も数える
+function inputMarkOf(item){
+  let best = null;
+  const take = (date, user) => {
+    if(!date) return;
+    const d = String(date).slice(0, 10);
+    if(!best || d >= best.date) best = { date:d, user:user || "" };
+  };
+  const one = it => {
+    take(it.phoneAt, it.phoneUser);
+    const key = itemKey(it.kubun, it.kigo, it.bango);
+    pending.forEach(p => {
+      if(p.type !== "期限" && p.type !== "訂正" && !isReg(p)) return;
+      if(itemKey(isReg(p) ? regKubun(p) : p.kubun, p.kigo, p.bango) === key) take(p.at, p.user);
+    });
+  };
+  one(item);
+  if(isCardleKubun(item.kubun)) baraOf(item).forEach(one);
+  return best;
+}
+
+function markText(m){
+  const [, mo, d] = m.date.split("/");
+  return `入力済 ${Number(mo)}/${Number(d)}${m.user ? " " + m.user : ""}`;
+}
+
+function markPill(item){
+  const m = inputMarkOf(item);
+  return m ? `<span class="pill done">${escapeHtml(markText(m))}</span>` : "";
+}
+
 function isResearch(it){ return /【調査が必要】/.test(String(withFixes(it).e.biko || it.biko || "")); }
 
 // 画面に出す1件（Access の値に、送信待ちの期限を重ねる）
@@ -850,8 +991,10 @@ function renderList(){
     : "一覧：未取り込み";
 
   const views = listViews().filter(kindMatch);
-  const counts = { expired:0, soon:0, unknown:0, research:0, fill:0, all:views.length };
+  const counts = { expired:0, soon:0, unknown:0, research:0, fill:0, notyet:0, all:views.length };
   views.forEach(v => {
+    v.mark = inputMarkOf(v.item);
+    if(!v.mark) counts.notyet++;
     if(counts[v.status] != null) counts[v.status]++;
     if(isResearch(v.item)) counts.research++;
     if(v.item.jotai === "充填") counts.fill++;
@@ -864,6 +1007,7 @@ function renderList(){
   const match = v => viewStatus === "all" ? true
     : viewStatus === "research" ? isResearch(v.item)
     : viewStatus === "fill" ? v.item.jotai === "充填"
+    : viewStatus === "notyet" ? !v.mark
     : v.status === viewStatus;
   const shown = views.filter(match).sort(sortViews);
   const box = document.getElementById("itemList");
@@ -891,6 +1035,7 @@ function itemButtonHtml(v){
         ${v.status !== "ok" ? `<span class="pill ${v.status}">${STATUS_LABEL[v.status]}</span>` : ""}
         ${v.item.jotai === "充填" ? '<span class="pill fill">充填</span>' : ""}
         ${isResearch(v.item) ? '<span class="pill research">調査が必要</span>' : ""}
+        ${v.mark !== undefined ? (v.mark ? `<span class="pill done">${escapeHtml(markText(v.mark))}</span>` : "") : markPill(v.item)}
         ${v.item.isNew ? '<span class="pill pending">新規</span>' : ""}
         ${pendingPill(v.pendingEntry)}
       </span>
@@ -928,13 +1073,14 @@ function findItem(kubunOrGroup, kigo, bango){
   return store.items.find(it => itemKey(it.kubun, it.kigo, it.bango) === key) || null;
 }
 
-// 「AB-1」「T19919」「BN 12」→ 記号と番号に分ける。数字がなければ記号だけ
-function splitQuery(q){
-  const s = normKigo(q);
-  const m = s.match(/^(.*?)[-‐－]?(\d+)$/);
-  if(!m) return { kigo:s.replace(/[-‐－]+$/, ""), bango:"" };
-  return { kigo:m[1].replace(/[-‐－]+$/, ""), bango:String(Number(m[2])) };
+// 探す欄の値（番号は数字だけなら先頭の0を消す。英字が入っていればそのまま）
+function searchKeys(){
+  const kigo = codeText(document.getElementById("sKigo").value);
+  const raw = codeText(document.getElementById("sBango").value);
+  return { kigo, bango:/^\d+$/.test(raw) ? String(Number(raw)) : raw };
 }
+
+function clearSearchInputs(){ document.getElementById("sKigo").value = ""; document.getElementById("sBango").value = ""; }
 
 function setSearchMessage(text, isErr){
   const el = document.getElementById("searchMessage");
@@ -953,8 +1099,8 @@ function renderHits(hits){
 }
 
 function runSearch(){
-  const { kigo, bango } = splitQuery(document.getElementById("searchInput").value);
-  if(!kigo && !bango){ setSearchMessage("記号番号を入れてください。", true); return; }
+  const { kigo, bango } = searchKeys();
+  if(!kigo && !bango){ setSearchMessage("記号か番号を入れてください。", true); return; }
   const pool = allItems();
   const hits = bango
     ? pool.filter(it => it.bango === bango && (!kigo || it.kigo === kigo))
@@ -993,15 +1139,15 @@ function runFilter(){
   document.getElementById(id).addEventListener("change", () => {
     if(i === 0){ document.getElementById("fKigo").value = ""; document.getElementById("fBango").value = ""; }
     if(i === 1){ document.getElementById("fBango").value = ""; }
-    document.getElementById("searchInput").value = "";
+    clearSearchInputs();
     runFilter();
   });
 });
 
 document.getElementById("searchButton").addEventListener("click", runSearch);
-document.getElementById("searchInput").addEventListener("keydown", e => {
+["sKigo", "sBango"].forEach(id => document.getElementById(id).addEventListener("keydown", e => {
   if(e.key === "Enter"){ e.preventDefault(); runSearch(); }
-});
+}));
 document.getElementById("searchResults").addEventListener("click", e => {
   const btn = e.target.closest(".item");
   if(btn){ openDetail(btn.dataset.kubun, btn.dataset.kigo, btn.dataset.bango); return; }
@@ -1015,7 +1161,8 @@ document.getElementById("searchResults").addEventListener("click", e => {
 function openDetail(kubun, kigo, bango){
   const it = findAny(kubun, kigo, bango);
   if(!it) return;
-  document.getElementById("searchInput").value = `${it.kigo}-${it.bango}`;
+  document.getElementById("sKigo").value = it.kigo;
+  document.getElementById("sBango").value = it.bango;
   setSearchMessage("");
   goToSearch();
   renderDetail(it);
@@ -1050,6 +1197,7 @@ function renderDetail(it){
     ${detailRow(isCardle ? "製造年（期限には使わない）" : "製造年月", escapeHtml(seizoText(e)) + (seizoFixed ? ' <span class="pill pending">訂正</span>' : ""))}
     ${detailRow("備考", escapeHtml(e.biko) + mark("備考"))}
     ${it.jotai === "充填" ? detailRow("状態", '<span class="pill fill">充填</span>') : ""}
+    ${detailRow("スマホで入力", markPill(it))}
     <div class="detail-row"><span>耐圧期限（入力済）</span><span><b>${escapeHtml(v.kigen || "なし")}</b>${statusPill}</span></div>
     ${v.kigen ? detailRow("期限の出所", escapeHtml(v.pendingEntry && v.pendingEntry.type === "期限" ? (v.pendingEntry.source || "分からない") : it.source)) : ""}
     ${v.yoso ? detailRow("予想耐圧期限", `${escapeHtml(v.yoso)} <span class="pill unknown">予想</span>`) : ""}
@@ -1069,7 +1217,7 @@ function renderDetail(it){
     html += bara.length
       ? `<div class="card">${bara.map(b => `<div class="sub-item">
            <button data-open="バラ瓶|${escapeHtml(b.item.kigo)}|${escapeHtml(b.item.bango)}">${escapeHtml(itemTitle(b.item))}</button>
-           <span>${escapeHtml(seizoText(b.item))}　${b.kigen ? `<b>${escapeHtml(b.kigen)}</b>` : b.yoso ? `<span style="color:#7A726A;">予想 ${escapeHtml(b.yoso)}</span>` : "<b>期限なし</b>"} ${b.item.isNew ? '<span class="pill pending">新規</span>' : pendingPill(b.pendingEntry)}</span>
+           <span>${escapeHtml(seizoText(b.item))}　${b.kigen ? `<b>${escapeHtml(b.kigen)}</b>` : b.yoso ? `<span style="color:#7A726A;">予想 ${escapeHtml(b.yoso)}</span>` : "<b>期限なし</b>"} ${markPill(b.item)} ${b.item.isNew ? '<span class="pill pending">新規</span>' : pendingPill(b.pendingEntry)}</span>
          </div>`).join("")}</div>`
       : '<div class="card note">バラ瓶は入っていません（カードルの期限を使います）。入れなくてもかまいません。</div>';
     const full = honsu && bara.length >= honsu;
@@ -1079,8 +1227,8 @@ function renderDetail(it){
   html += `<h2>次回の耐圧期限を入れる</h2>
     <div class="card">
       <div class="field">
-        <label for="kigenInput">新しい耐圧期限</label>
-        <input type="date" id="kigenInput">
+        <label for="kigenInput">新しい耐圧期限（数字でも可：20290930、202909＝月末）</label>
+        <div class="date-combo"><input type="text" id="kigenInput" class="date-text" inputmode="numeric" autocomplete="off" placeholder="例：2029/09/30"><label class="date-cal">カレンダー<input type="date" class="date-pick" data-for="kigenInput" tabindex="-1" aria-label="カレンダーで選ぶ"></label></div>
       </div>
       <div class="field">
         <label for="kigenSource">期限の出所（刻印が読めないときは日本気化器のネット情報）</label>
@@ -1312,10 +1460,10 @@ function requireUser(){
 
 function saveKigen(it, v){
   const msg = document.getElementById("kigenMessage");
-  const d = parseDate(document.getElementById("kigenInput").value);
+  const d = parseDateInput(document.getElementById("kigenInput").value);
   const source = document.getElementById("kigenSource").value;
   msg.classList.add("err");
-  if(!d){ msg.textContent = "日付を選んでください。"; return; }
+  if(!d){ msg.textContent = document.getElementById("kigenInput").value.trim() ? DATE_ERR : "日付を入れるか、カレンダーで選んでください。"; return; }
   const user = requireUser();
   if(!user){ msg.textContent = "入力者の名前が入っていません（一覧の画面のいちばん下）。"; return; }
   if(!checkKigen(d, v.kigen)) return;
@@ -1408,10 +1556,11 @@ document.getElementById("cdSaveButton").addEventListener("click", () => {
   const eigyo = document.getElementById("cdEigyo").value;
   const shoyu = document.getElementById("cdShoyu").value;
   const nensu = document.getElementById("cdNensu").value;
-  const kigen = parseDate(document.getElementById("cdKigen").value);
+  const kigen = parseDateInput(document.getElementById("cdKigen").value);
   const source = document.getElementById("cdSource").value;
 
   if(!kigo || !bango){ setCdMessage("記号と番号を入れてください。", true); return; }
+  if(!kigen && document.getElementById("cdKigen").value.trim()){ setCdMessage(DATE_ERR, true); return; }
   if(!/^[A-Z0-9]+$/.test(kigo)){ setCdMessage("記号は英字と数字で入れてください（空白・記号は入れません）。", true); return; }
   if(!gas){ setCdMessage("ガス種を選んでください。", true); return; }
   if(isC && !kosei){ setCdMessage("構成を入れてください（例：7㎥×20本）。", true); return; }
@@ -1487,11 +1636,12 @@ document.getElementById("bSaveButton").addEventListener("click", () => {
   const bango = normBango(document.getElementById("bBango").value);
   const seizo = normBango(document.getElementById("bSeizo").value);
   const seizoM = document.getElementById("bSeizoM").value;
-  const kigen = parseDate(document.getElementById("bKigen").value);
+  const kigen = parseDateInput(document.getElementById("bKigen").value);
   const source = document.getElementById("bSource").value;
   const gas = withFixes(c).e.gas;
 
   if(!kigo || !bango){ setBMessage("記号と番号を入れてください。", true); return; }
+  if(!kigen && document.getElementById("bKigen").value.trim()){ setBMessage(DATE_ERR, true); return; }
   if(!/^[A-Z0-9]+$/.test(kigo)){ setBMessage("記号は英字と数字で入れてください（空白・記号は入れません）。", true); return; }
   if(!gas){ setBMessage("カードルのガス種が入っていません。先にカードルのガス種を入れてください。", true); return; }
   const se = checkSeizo(seizo, seizoM);
@@ -1676,13 +1826,327 @@ function goToSearch(){
 document.getElementById("navListButton").addEventListener("click", goToList);
 document.getElementById("navSearchButton").addEventListener("click", () => {
   goToSearch();
-  document.getElementById("searchInput").focus();
+  document.getElementById("sKigo").focus();
 });
 
 function renderAll(){
   renderList();
   renderPending();
 }
+
+/* =========================================================
+   天気（気象庁の予報データ。日報アプリから移したもの。位置は外へ送らない）
+   ・現在地に一番近い予報区を選び、その区のファイルを取ってくる
+   ・日付の横に、3日分の天気→降水確率→気温を、めくって出す。タップで詳細
+   ・電波がないときは、最後に取れた内容を使う
+========================================================= */
+const WX_AREAS = [   // 予報区（一次細分区域）の代表地点。office＝気象庁の予報ファイルの番号
+  { office:"011000", name:"宗谷地方", lat:45.42, lng:141.67 },
+  { office:"012000", name:"上川地方", lat:43.77, lng:142.37 },
+  { office:"012000", name:"留萌地方", lat:43.94, lng:141.64 },
+  { office:"013000", name:"網走地方", lat:44.02, lng:144.27 },
+  { office:"013000", name:"北見地方", lat:43.81, lng:143.89 },
+  { office:"013000", name:"紋別地方", lat:44.36, lng:143.36 },
+  { office:"014030", name:"十勝地方", lat:42.92, lng:143.20 },
+  { office:"014100", name:"根室地方", lat:43.33, lng:145.58 },
+  { office:"014100", name:"釧路地方", lat:42.98, lng:144.38 },
+  { office:"015000", name:"胆振地方", lat:42.63, lng:141.60 },
+  { office:"015000", name:"日高地方", lat:42.17, lng:142.77 },
+  { office:"016000", name:"石狩地方", lat:43.06, lng:141.35 },
+  { office:"016000", name:"空知地方", lat:43.20, lng:141.78 },
+  { office:"016000", name:"後志地方", lat:42.90, lng:140.76 },
+  { office:"017000", name:"渡島地方", lat:41.77, lng:140.73 },
+  { office:"017000", name:"檜山地方", lat:41.87, lng:140.12 }
+];
+const WX_POINTS = {   // 気温の地点
+  "稚内":[45.42,141.67], "旭川":[43.77,142.37], "留萌":[43.94,141.64], "網走":[44.02,144.27], "紋別":[44.36,143.36],
+  "北見":[43.81,143.89], "帯広":[42.92,143.20], "釧路":[42.98,144.38], "根室":[43.33,145.58], "室蘭":[42.32,140.97],
+  "苫小牧":[42.63,141.60], "浦河":[42.17,142.77], "札幌":[43.06,141.35], "岩見沢":[43.20,141.78], "倶知安":[42.90,140.76],
+  "函館":[41.77,140.73], "江差":[41.87,140.12]
+};
+const WX_KEY = "yokiWxCache", WX_SPEED_KEY = "yokiWxSpeed";
+const WX_URL = o => `https://www.jma.go.jp/bosai/forecast/data/forecast/${o}.json`;
+
+function wxDist(lat1, lng1, lat2, lng2){ const dx = (lng1 - lng2) * 0.73, dy = lat1 - lat2; return Math.sqrt(dx * dx + dy * dy); }
+function wxNearest(lat, lng){
+  let best = null, bd = 1e9;
+  WX_AREAS.forEach(a => { const d = wxDist(lat, lng, a.lat, a.lng); if(d < bd){ bd = d; best = a; } });
+  return bd <= 3.0 ? best : null;              // 北海道から離れすぎているときは出さない
+}
+const wxClean = t => String(t || "").replace(/[　\s]+/g, " ").trim();
+const wxJstDate = ms => new Date(ms + 9 * 3600 * 1000).toISOString().slice(0, 10);
+
+function wxParse(json, area, lat, lng){
+  const rep0 = json[0], ts = rep0.timeSeries;
+  const pick = (arr, name) => (arr || []).find(a => a.area && a.area.name === name) || (arr || [])[0] || {};
+  const a0 = pick(ts[0].areas, area.name), a1 = pick(ts[1].areas, area.name);
+  let tp = null;
+  if(ts[2] && ts[2].areas && ts[2].areas.length){
+    let bd = 1e9;
+    ts[2].areas.forEach(p => { const c = WX_POINTS[p.area.name]; if(c){ const d = wxDist(lat, lng, c[0], c[1]); if(d < bd){ bd = d; tp = p; } } });
+    if(!tp) tp = ts[2].areas[0];
+  }
+  const d = {
+    office: area.office, areaName: area.name, report: rep0.reportDatetime, fetchedAt: new Date().toISOString(),
+    wTimes: ts[0].timeDefines || [], weathers: (a0.weathers || []).map(wxClean), codes: a0.weatherCodes || [],
+    popsT: ts[1].timeDefines || [], popsV: a1.pops || [],
+    tempName: tp ? tp.area.name : "", tempsT: tp ? (ts[2].timeDefines || []) : [], tempsV: tp ? (tp.temps || []) : []
+  };
+  const wk = json[1];                                   // 週間予報：明後日など、短い予報にない日を補う
+  if(wk && wk.timeSeries && wk.timeSeries[0]){
+    const w0 = pick(wk.timeSeries[0].areas, area.name);
+    d.wkT = wk.timeSeries[0].timeDefines || []; d.wkCodes = w0.weatherCodes || []; d.wkPops = w0.pops || [];
+    const t1 = wk.timeSeries[1];
+    if(t1 && t1.areas && t1.areas.length){
+      const wp = t1.areas.find(p => p.area && p.area.name === d.tempName) || t1.areas[0];
+      d.wkMin = wp.tempsMin || []; d.wkMax = wp.tempsMax || [];
+    }
+  }
+  return d;
+}
+function wxTempsFor(d, dayKey){
+  const out = {};
+  (d.tempsT || []).forEach((t, i) => {
+    const v = parseFloat(d.tempsV[i]);
+    if(!isFinite(v)) return;
+    const day = String(t).slice(0, 10), hour = parseInt(String(t).slice(11, 13), 10);
+    out[day] = out[day] || {};
+    if(hour === 9) out[day].max = v; else if(hour === 0) out[day].min = v;
+  });
+  return out[dayKey] || {};
+}
+function wxTemps(d, nowMs){
+  const today = wxTempsFor(d, wxJstDate(nowMs));
+  if(today.min != null && today.max != null && today.min >= today.max) delete today.min;   // 今日の最低は、過ぎた時刻の値が入ることがある
+  return today;
+}
+function wxPops(d, nowMs){                    // 今のブロックと、そのあと2つ（6時間ごと）
+  const t = d.popsT || [];
+  let idx = -1;
+  for(let i = 0; i < t.length; i++){ const st = Date.parse(t[i]); if(st <= nowMs && nowMs < st + 6 * 3600 * 1000){ idx = i; break; } }
+  if(idx < 0) return [];
+  const res = [];
+  for(let k = 0; k < 3 && idx + k < t.length; k++){
+    res.push({ label: k === 0 ? "今" : `${parseInt(String(t[idx + k]).slice(11, 13), 10)}時〜`, v: d.popsV[idx + k] });
+  }
+  return res;
+}
+// 天気コード → 短い言葉（よく出るものだけ。ないものは、最初の数字から 晴れ・くもり・雨・雪）
+const WX_CODE_WORDS = {
+  "100":"晴れ","101":"晴れ 時々 くもり","102":"晴れ 一時 雨","103":"晴れ 時々 雨","104":"晴れ 一時 雪","105":"晴れ 時々 雪",
+  "110":"晴れ のち くもり","111":"晴れ のち くもり","112":"晴れ のち 一時 雨","113":"晴れ のち 時々 雨","114":"晴れ のち 雨","115":"晴れ のち 一時 雪",
+  "200":"くもり","201":"くもり 時々 晴れ","202":"くもり 一時 雨","203":"くもり 時々 雨","204":"くもり 一時 雪","205":"くもり 時々 雪",
+  "210":"くもり のち 晴れ","211":"くもり のち 晴れ","212":"くもり のち 一時 雨","213":"くもり のち 時々 雨","214":"くもり のち 雨","215":"くもり のち 一時 雪",
+  "300":"雨","301":"雨 時々 晴れ","302":"雨 時々 止む","303":"雨 時々 雪","311":"雨 のち 晴れ","313":"雨 のち くもり","314":"雨 のち 時々 雪",
+  "400":"雪","401":"雪 時々 晴れ","402":"雪 時々 止む","403":"雪 時々 雨","411":"雪 のち 晴れ","413":"雪 のち くもり","414":"雪 のち 雨"
+};
+function wxCodeWord(code){
+  const c = String(code || "");
+  return WX_CODE_WORDS[c] || ({ "1":"晴れ", "2":"くもり", "3":"雨", "4":"雪" })[c[0]] || "";
+}
+// 今日・明日・明後日の3日分
+function wxDays(d, nowMs){
+  return [0, 1, 2].map(i => {
+    const key = wxJstDate(nowMs + i * 24 * 3600 * 1000), out = { key };
+    const si = (d.wTimes || []).findIndex(t => String(t).slice(0, 10) === key);
+    const wi = (d.wkT || []).findIndex(t => String(t).slice(0, 10) === key);
+    if(si >= 0 && d.weathers && d.weathers[si]){ out.text = d.weathers[si]; out.code = (d.codes || [])[si]; }
+    else if(wi >= 0 && d.wkCodes && d.wkCodes[wi]){ out.code = d.wkCodes[wi]; out.text = wxCodeWord(out.code); }
+    const tm = i === 0 ? wxTemps(d, nowMs) : wxTempsFor(d, key);
+    if(tm.max == null && wi >= 0 && d.wkMax){ const v = parseFloat(d.wkMax[wi]); if(isFinite(v)) tm.max = v; }
+    if(tm.min == null && wi >= 0 && d.wkMin){ const v = parseFloat(d.wkMin[wi]); if(isFinite(v)) tm.min = v; }
+    out.max = tm.max; out.min = tm.min;
+    if(i === 0){ out.popsNow = wxPops(d, nowMs); }
+    else{
+      const vals = [];
+      (d.popsT || []).forEach((t, j) => { if(String(t).slice(0, 10) === key){ const v = parseFloat(d.popsV[j]); if(isFinite(v)) vals.push(v); } });
+      if(vals.length) out.pop = Math.max(...vals);
+      else if(wi >= 0 && d.wkPops){ const v = parseFloat(d.wkPops[wi]); if(isFinite(v)) out.pop = v; }
+    }
+    return out;
+  });
+}
+// 天気のアイコン：言葉に出てくる順に、最大2つ（例：晴れ のち くもり → ☀☁）。言葉がなければ、コードの先頭の数字から
+function wxIconsFromText(text, code){
+  const out = [], re = /晴|くもり|曇|雨|雪|雷/g;
+  const map = { "晴":"☀", "くもり":"☁", "曇":"☁", "雨":"☂", "雪":"❄", "雷":"⚡" };
+  let m;
+  while((m = re.exec(String(text || "")))){ const ic = map[m[0]]; if(out[out.length - 1] !== ic) out.push(ic); }
+  return out.length ? out.slice(0, 2).join("") : wxIcon(code);
+}
+// 「14水」の形（日本時間の日付から）
+function wxDayLabel(key){
+  const p = String(key).split("-").map(Number);
+  return `${p[2]}${"日月火水木金土"[new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay()]}`;
+}
+function wxIcon(code){ return ({ "1":"☀", "2":"☁", "3":"☂", "4":"❄" })[String(code || "")[0]] || ""; }
+
+function wxLoad(){ try{ return JSON.parse(localStorage.getItem(WX_KEY) || "null"); }catch(e){ return null; } }
+/* めくる速さ（端末ごとの設定）：3秒／3.5秒（初期値）／4秒／止める */
+const WX_SPEEDS = [["3000","速い（3秒）"], ["3500","標準（3.5秒）"], ["4000","ゆっくり（4秒）"], ["stop","止める"]];
+function wxSpeed(){ let v = null; try{ v = localStorage.getItem(WX_SPEED_KEY); }catch(e){} return WX_SPEEDS.some(x => x[0] === v) ? v : "3500"; }
+function wxInterval(){ const v = wxSpeed(); return v === "stop" ? 0 : parseInt(v, 10); }
+function wxReduced(){ try{ return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){ return false; } }
+function wxManual(){ return wxReduced() || wxInterval() === 0; }          // 自動でめくらない（タップで次へ、長押しで詳細）
+function wxCols(){
+  const d = wxLoad();
+  if(!d || !d.weathers || !d.weathers.length) return null;
+  return wxDays(d, Date.now()).map(day => {
+    const pv = (day.popsNow && day.popsNow[0]) ? parseFloat(day.popsNow[0].v) : day.pop;
+    return { icons: day.text ? wxIconsFromText(day.text, day.code) : "", pop: isFinite(pv) ? pv : null, max: day.max, min: day.min, label: wxDayLabel(day.key) };
+  });
+}
+// 数値がないところは「--」
+function wxCellText(c, mode){
+  if(mode === 0) return c.icons || "--";
+  if(mode === 1) return c.pop != null ? c.pop + "%" : "--";
+  return `${c.max != null ? c.max : "--"}/${c.min != null ? c.min : "--"}`;
+}
+let wxMode = 0;                                   // 0=アイコン 1=降水確率 2=気温
+// 気温の色：0℃未満=紫、0℃=濃い青、1〜9℃=水色、10〜19℃=緑、20〜24℃=だいだい、25℃以上=赤
+function wxTempColor(n){
+  if(n < 0) return "#7B3FC4";
+  if(n < 1) return "#1F55C4";
+  if(n < 10) return "#2A9FD6";
+  if(n < 20) return "#2E9E5B";
+  if(n < 25) return "#E8890C";
+  return "#D62E2E";
+}
+function wxRender(flip){
+  const btn = document.getElementById("wxButton");
+  const cols = wxCols(), d = wxLoad();
+  if(!cols){ btn.hidden = true; return; }
+  btn.hidden = false;
+  btn.querySelectorAll(".wx-r1").forEach((el, i) => {
+    const t = wxCellText(cols[i], wxMode);
+    if(wxMode === 1 && /%$/.test(t)){ const pv = parseFloat(t); el.innerHTML = `<span class="wx-pv ${pv >= 30 ? "wet" : "dry"}">${escapeHtml(t.slice(0, -1))}<span class="wx-pc">%</span></span>`; }
+    else if(wxMode === 2) el.innerHTML = t.split("/").map(x => { const n = parseFloat(x); return isFinite(n) ? `<span style="color:${wxTempColor(n)}">${escapeHtml(x)}</span>` : escapeHtml(x); }).join("/");
+    else if(wxMode === 0 && t !== "--") el.innerHTML = Array.from(t).map(ch => `<span class="wx-ic" data-ic="${escapeHtml(ch)}">${escapeHtml(ch)}</span>`).join("");
+    else el.textContent = t;
+  });
+  btn.querySelectorAll(".wx-r2").forEach((el, i) => { el.textContent = cols[i].label; });
+  btn.querySelector(".wx-stale").hidden = !((Date.now() - Date.parse(d.fetchedAt)) > 3 * 3600 * 1000);   // 3時間より古いときは、先頭に「--」
+  const grid = btn.querySelector(".wx-grid");
+  grid.classList.toggle("icons", wxMode === 0);
+  grid.classList.toggle("temp", wxMode === 2);
+  if(flip && !wxReduced()){ grid.classList.remove("flip"); void grid.offsetWidth; grid.classList.add("flip"); }   // ページが返るように切り替える
+}
+function wxStep(dir){ wxMode = ((wxMode + dir) % 3 + 3) % 3; wxRender(true); }
+let wxTimer = null;
+function wxRestartTimer(){
+  clearInterval(wxTimer);
+  wxTimer = null;
+  const ms = wxInterval();
+  if(ms > 0 && !wxReduced()){
+    wxTimer = setInterval(() => {
+      const btn = document.getElementById("wxButton");
+      if(btn.hidden || btn.classList.contains("paused") || document.hidden) return;   // 触れている間・見えていない間は止める
+      wxStep(1);
+    }, ms);
+  }
+}
+function wxPosition(){
+  return new Promise(resolve => {
+    if(!navigator.geolocation){ resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({ lat:p.coords.latitude, lng:p.coords.longitude }),
+      () => resolve(null),
+      { enableHighAccuracy:false, timeout:8000, maximumAge:1800000 });
+  });
+}
+let wxBusy = false;
+async function refreshWeather(force){
+  if(wxBusy) return;
+  wxBusy = true;
+  try{
+    const cache = wxLoad();
+    if(!force && cache && Date.now() - Date.parse(cache.fetchedAt) < 30 * 60 * 1000){ wxRender(); return; }
+    const pos = await wxPosition();
+    let area = null, lat = 43.06, lng = 141.35;
+    if(pos){ lat = pos.lat; lng = pos.lng; area = wxNearest(lat, lng); }
+    else if(cache){ area = WX_AREAS.find(a => a.name === cache.areaName) || null; if(area){ lat = area.lat; lng = area.lng; } }
+    if(!area){ wxRender(); return; }
+    const ctl = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = setTimeout(() => { if(ctl) ctl.abort(); }, 8000);
+    try{
+      const res = await fetch(WX_URL(area.office), ctl ? { signal: ctl.signal, cache:"no-store" } : { cache:"no-store" });
+      if(!res.ok) throw new Error("http " + res.status);
+      const d = wxParse(await res.json(), area, lat, lng);
+      localStorage.setItem(WX_KEY, JSON.stringify(d));
+    }catch(e){ /* 電波がない・取れないときは、最後に取れた内容のまま */ }
+    finally{ clearTimeout(timer); }
+    wxRender();
+  }finally{ wxBusy = false; }
+}
+
+// 詳細（下から出る板）：3日分の表、今日の6時間ごとの降水確率、めくる速さ
+function wxShowSheet(){
+  const d = wxLoad();
+  if(!d) return;
+  const sheet = document.getElementById("wxSheet");
+  const now = Date.now(), days = wxDays(d, now), p = wxPops(d, now);
+  const hm = iso => { const x = new Date(iso); return isNaN(x.getTime()) ? "" : `${x.getMonth() + 1}/${x.getDate()} ${pad2(x.getHours())}:${pad2(x.getMinutes())}`; };
+  const nn = v => v != null ? v : "--";
+  const popOf = day => (day.popsNow && day.popsNow[0]) ? day.popsNow[0].v + "%" : (day.pop != null ? day.pop + "%" : "--");
+  const tr = (label, f) => `<tr><th>${escapeHtml(label)}</th>${days.map(day => `<td>${escapeHtml(f(day))}</td>`).join("")}</tr>`;
+  const table1 = `<table class="wx-tbl"><thead><tr><th></th>${days.map(day => `<th>${escapeHtml(wxDayLabel(day.key))}</th>`).join("")}</tr></thead><tbody>` +
+    tr("天気", day => day.text || "--") + tr("最高（℃）", day => nn(day.max)) + tr("最低（℃）", day => nn(day.min)) + tr("降水確率", popOf) + `</tbody></table>`;
+  const table2 = p.length
+    ? `<div class="wx-sub">${escapeHtml(wxDayLabel(days[0].key))} 6時間ごとの降水確率</div><table class="wx-tbl"><thead><tr>${p.map(x => `<th>${escapeHtml(x.label)}</th>`).join("")}</tr></thead><tbody><tr>${p.map(x => `<td>${escapeHtml(x.v === "" || x.v == null ? "--" : x.v + "%")}</td>`).join("")}</tr></tbody></table>`
+    : "";
+  const speed = `<div class="wx-sub">めくる速さ</div><div class="wx-speed" id="wxSpeedSeg">` +
+    WX_SPEEDS.map(([v, label]) => `<button type="button" data-v="${v}" class="${v === wxSpeed() ? "on" : ""}">${escapeHtml(label)}</button>`).join("") + `</div>`;
+  sheet.innerHTML = `<h3>天気（気象庁） ${escapeHtml(d.areaName)}</h3>` + table1 + table2 + speed +
+    `<div class="wx-note">発表 ${escapeHtml(hm(d.report))}　取得 ${escapeHtml(hm(d.fetchedAt))}　出典：気象庁ホームページ（予報区ごとの予報で、地点の天気とは異なる場合があります。週間予報から補う日は、天気が短い言葉になります）</div>` +
+    `<div class="wx-btns"><button type="button" class="btn btn-outline-mint" id="wxRefresh">更新</button><button type="button" class="btn btn-mint" id="wxClose">閉じる</button></div>`;
+  sheet.hidden = false;
+}
+
+(function setupWeather(){
+  const btn = document.getElementById("wxButton"), sheet = document.getElementById("wxSheet");
+  sheet.addEventListener("click", e => {
+    if(e.target.closest("#wxClose")){ sheet.hidden = true; return; }
+    if(e.target.closest("#wxRefresh")){ refreshWeather(true).then(() => { if(!sheet.hidden) wxShowSheet(); }); return; }
+    const sp = e.target.closest("#wxSpeedSeg button");
+    if(sp){
+      try{ localStorage.setItem(WX_SPEED_KEY, sp.getAttribute("data-v")); }catch(err){ /* 保存できなくても、この画面では切り替わる */ }
+      sheet.querySelectorAll("#wxSpeedSeg button").forEach(b => b.classList.toggle("on", b === sp));
+      wxRestartTimer();
+    }
+  });
+  document.addEventListener("pointerdown", e => { if(!sheet.hidden && !e.target.closest("#wxSheet") && !e.target.closest("#wxButton")) sheet.hidden = true; });
+  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") refreshWeather(false); });
+  window.addEventListener("online", () => refreshWeather(true));
+
+  let pressTimer = null, longPressed = false, swiped = false, startX = 0;
+  btn.addEventListener("pointerdown", e => {         // 触れている間は、めくりが止まる
+    btn.classList.add("paused");
+    longPressed = false;
+    swiped = false;
+    startX = e.clientX || 0;
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => { if(wxManual()){ longPressed = true; wxShowSheet(); } }, 500);
+  });
+  const release = () => { btn.classList.remove("paused"); clearTimeout(pressTimer); };
+  btn.addEventListener("pointerup", e => {           // 左右になぞると、手でめくれる
+    const dx = (e.clientX || 0) - startX;
+    if(Math.abs(dx) > 30){ swiped = true; wxStep(dx < 0 ? 1 : -1); }
+    release();
+  });
+  ["pointercancel", "pointerleave"].forEach(t => btn.addEventListener(t, release));
+  btn.addEventListener("click", () => {
+    if(swiped){ swiped = false; return; }
+    if(wxManual()){                                 // 自動でめくらないとき：タップで次へ、長押しで詳細
+      if(longPressed){ longPressed = false; return; }
+      wxStep(1);
+      return;
+    }
+    if(sheet.hidden) wxShowSheet(); else sheet.hidden = true;                // 通常：タップで詳細
+  });
+  wxRender();                                       // 保存してある天気をすぐ出し、少し待ってから、最新を取りに行く
+  wxRestartTimer();
+  setTimeout(() => refreshWeather(false), 800);
+})();
 
 updateDate();
 goToList();
