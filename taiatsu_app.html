@@ -338,7 +338,7 @@
 
     <div class="chip-group" id="statusChips">
       <button class="chip active" data-status="expired">期限切れ <span></span></button>
-      <button class="chip" data-status="soon">3か月以内 <span></span></button>
+      <button class="chip" data-status="soon">1年以内 <span></span></button>
       <button class="chip" data-status="unknown">要確認 <span></span></button>
       <button class="chip" data-status="research">要調査 <span></span></button>
       <button class="chip" data-status="fill">充填 <span></span></button>
@@ -534,7 +534,7 @@
 const ITEMS_KEY = "yokiItems";
 const PENDING_KEY = "yokiPending";
 const USER_KEY = "yokiUserName";
-const SOON_MONTHS = 3;
+const SOON_MONTHS = 12;
 
 function loadJson(key, fallback){
   try{
@@ -657,7 +657,7 @@ function getStatus(kigenText){
   return "ok";
 }
 
-const STATUS_LABEL = { expired:"期限切れ", soon:"3か月以内", unknown:"要確認", ok:"" };
+const STATUS_LABEL = { expired:"期限切れ", soon:"1年以内", unknown:"要確認", ok:"" };
 
 // 期限の出所（Access の表 M_期限出所 と同じ名前・同じ順。ベッセルは刻印→日本気化器ネット情報の順に見る）
 const KIGEN_SOURCES = ["刻印", "日本気化器ネット情報"];
