@@ -338,7 +338,7 @@
 
     <div class="chip-group" id="statusChips">
       <button class="chip active" data-status="expired">期限切れ <span></span></button>
-      <button class="chip" data-status="soon">1年以内 <span></span></button>
+      <button class="chip" data-status="soon">3か月以内 <span></span></button>
       <button class="chip" data-status="unknown">要確認 <span></span></button>
       <button class="chip" data-status="research">要調査 <span></span></button>
       <button class="chip" data-status="fill">充填 <span></span></button>
@@ -534,7 +534,7 @@
 const ITEMS_KEY = "yokiItems";
 const PENDING_KEY = "yokiPending";
 const USER_KEY = "yokiUserName";
-const SOON_MONTHS = 12;
+const SOON_MONTHS = 3;
 
 function loadJson(key, fallback){
   try{
@@ -657,7 +657,7 @@ function getStatus(kigenText){
   return "ok";
 }
 
-const STATUS_LABEL = { expired:"期限切れ", soon:"1年以内", unknown:"要確認", ok:"" };
+const STATUS_LABEL = { expired:"期限切れ", soon:"3か月以内", unknown:"要確認", ok:"" };
 
 // 期限の出所（Access の表 M_期限出所 と同じ名前・同じ順。ベッセルは刻印→日本気化器ネット情報の順に見る）
 const KIGEN_SOURCES = ["刻印", "日本気化器ネット情報"];
@@ -1234,18 +1234,17 @@ function renderDetail(it){
         <label for="kigenSource">期限の出所（刻印が読めないときは日本気化器のネット情報）</label>
         <select id="kigenSource">${sourceOptionsHtml("刻印")}</select>
       </div>
-      <button class="btn btn-mint" id="kigenSaveButton">入力する（送信待ちに入れる）</button>
-      <div class="msg" id="kigenMessage"></div>
-      <p class="note" style="margin:8px 0 0;">検査日は入れません。Accessで期限から逆算します。</p>
+      <p class="note" style="margin:0;">変えないときは空欄のままにします。検査日は入れません。Accessで期限から逆算します。</p>
     </div>`;
 
   html += fixFormHtml(it, e);
+  html += `<button class="btn btn-mint" id="detailSaveButton">入れる（送信待ちに入れる）</button>
+    <div class="msg" id="detailMessage"></div>
+    <p class="note" style="margin:6px 0 0;">新しい耐圧期限と、直した内容を、まとめて送信待ちに入れます。</p>`;
 
   const box = document.getElementById("searchResults");
   box.innerHTML = html;
-  document.getElementById("kigenSaveButton").addEventListener("click", () => saveKigen(it, v));
-  const fixButton = document.getElementById("fixSaveButton");
-  if(fixButton) fixButton.addEventListener("click", () => saveFixes(it));
+  document.getElementById("detailSaveButton").addEventListener("click", () => saveDetail(it, v));
   const baraButton = document.getElementById("baraAddButton");
   if(baraButton) baraButton.addEventListener("click", () => openBara(it));
 }
@@ -1357,9 +1356,7 @@ function fixFormHtml(it, e){
       <div class="field"><label for="fx所有者">所有者</label><select id="fx所有者">${optionsHtml(SHOYU_OPTIONS, e.shoyu || "", !e.shoyu)}</select></div>`}
       <div class="field"><label for="fx備考">備考</label><input type="text" id="fx備考" value="${escapeHtml(e.biko || "")}" autocomplete="off"></div>
       <div class="field"><label for="fx理由">理由（任意。例：刻印で確認）</label><input type="text" id="fx理由" autocomplete="off"></div>
-      <button class="btn btn-sky" id="fixSaveButton">直す（送信待ちに入れる）</button>
-      <div class="msg" id="fixMessage"></div>
-      <p class="note" style="margin:8px 0 0;">直した項目だけを送ります。Accessでは確認画面で「確定」したときに直り、訂正履歴に残ります。</p>
+      <p class="note" style="margin:0;">直した項目だけを送ります。Accessでは確認画面で「確定」したときに直り、訂正履歴に残ります。</p>
     </div>`;
 }
 
@@ -1381,27 +1378,20 @@ function readFixForm(it){
   return out;
 }
 
-function saveFixes(it){
-  const msg = document.getElementById("fixMessage");
-  msg.classList.add("err");
-  const user = requireUser();
-  if(!user){ msg.textContent = "入力者の名前が入っていません（一覧の画面のいちばん下）。"; return; }
-  const values = readFixForm(it);
-  const y = values["製造年"];
-  if(y && (Number(y) < 1900 || Number(y) > new Date().getFullYear())){ msg.textContent = "製造年は西暦4けたで入れてください。"; return; }
-  if(values["容量"] !== undefined && document.getElementById("fx容量").value && !(Number(document.getElementById("fx容量").value) > 0)){ msg.textContent = "容量は0より大きい数で入れてください。"; return; }
-  if(values["備考"] && values["備考"].length > 255){ msg.textContent = "備考が長すぎます（255文字まで）。"; return; }
-  if(it.isNew && it.reg && !it.reg.sent){ applyRegFix(it, values); return; }
-  const reason = document.getElementById("fx理由").value.trim();
+// 直した項目（今の表示から変わったもの）。製造年は消せない
+function changedFixNames(it, values){
   const { e } = withFixes(it);
-  const key = itemKey(it.kubun, it.kigo, it.bango);
-  let changed = 0;
-
-  Object.keys(values).forEach(name => {
+  return Object.keys(values).filter(name => {
     const after = values[name];
-    if(after == null) return;
-    if(after === accessValue(e, name)) return;          // 今の表示から変わっていない
-    if(name === "製造年" && !after) return;              // 製造年は消せない
+    if(after == null || after === accessValue(e, name)) return false;
+    return !(name === "製造年" && !after);
+  });
+}
+
+function addFixes(it, values, names, reason, user){
+  const key = itemKey(it.kubun, it.kigo, it.bango);
+  names.forEach(name => {
+    const after = values[name];
     // 同じ項目の、まだ送っていない訂正は置き換える
     pending = pending.filter(p => !(p.type === "訂正" && !p.sent && p.item === name && itemKey(p.kubun, p.kigo, p.bango) === key));
     if(after !== accessValue(it, name)){
@@ -1409,14 +1399,7 @@ function saveFixes(it){
                      kigen:"", nensu:"", gas:"", kosei:"", seizo:"", item:name, before:accessValue(it, name), after, reason,
                      at:nowText(), user, sent:false, sentAt:"" });
     }
-    changed++;
   });
-
-  if(!changed){ msg.textContent = "変わった項目がありません。"; return; }
-  saveJson(PENDING_KEY, pending);
-  showToast(`${changed}項目を送信待ちに入れました`);
-  renderAll();
-  renderDetail(it);
 }
 
 // 送信前の新規登録は、訂正を作らずに登録の内容を直す
@@ -1433,10 +1416,6 @@ function applyRegFix(it, values){
     if(p.type === "カードル登録") pending.filter(b => b.type === "容器登録" && b.kubun === "バラ瓶" && b.cKigo === p.kigo && b.cBango === p.bango && !b.sent).forEach(b => { b.gas = p.gas; });
   }
   p.at = nowText();
-  saveJson(PENDING_KEY, pending);
-  showToast("新規登録の内容を直しました");
-  renderAll();
-  renderDetail(findAny(it.kubun, it.kigo, it.bango) || it);
 }
 
 function checkKigen(newDate, oldText){
@@ -1458,27 +1437,46 @@ function requireUser(){
   return name;
 }
 
-function saveKigen(it, v){
-  const msg = document.getElementById("kigenMessage");
-  const d = parseDateInput(document.getElementById("kigenInput").value);
-  const source = document.getElementById("kigenSource").value;
+// 「入れる」：新しい耐圧期限（入れたとき）と、直した内容を、まとめて送信待ちに入れる
+function saveDetail(it, v){
+  const msg = document.getElementById("detailMessage");
   msg.classList.add("err");
-  if(!d){ msg.textContent = document.getElementById("kigenInput").value.trim() ? DATE_ERR : "日付を入れるか、カレンダーで選んでください。"; return; }
+  msg.textContent = "";
+  const kText = document.getElementById("kigenInput").value.trim();
+  const d = kText ? parseDateInput(kText) : null;
+  if(kText && !d){ msg.textContent = DATE_ERR; return; }
+  const values = readFixForm(it);
+  const y = values["製造年"];
+  if(y && (Number(y) < 1900 || Number(y) > new Date().getFullYear())){ msg.textContent = "製造年は西暦4けたで入れてください。"; return; }
+  if(values["容量"] !== undefined && document.getElementById("fx容量").value && !(Number(document.getElementById("fx容量").value) > 0)){ msg.textContent = "容量は0より大きい数で入れてください。"; return; }
+  if(values["備考"] && values["備考"].length > 255){ msg.textContent = "備考が長すぎます（255文字まで）。"; return; }
+  const names = changedFixNames(it, values);
+  if(!d && !names.length){ msg.textContent = "変わったところがありません。新しい耐圧期限を入れるか、内容を直してください。"; return; }
   const user = requireUser();
   if(!user){ msg.textContent = "入力者の名前が入っていません（一覧の画面のいちばん下）。"; return; }
-  if(!checkKigen(d, v.kigen)) return;
+  if(d && !checkKigen(d, v.kigen)) return;
 
-  if(it.isNew && it.reg && !it.reg.sent){
-    // 送信前の新規登録は、登録内容の期限を直す
-    it.reg.kigen = formatDate(d); it.reg.source = source; it.reg.at = nowText();
-  }else{
-    // 同じ容器の、まだ送っていない入力は置き換える
-    pending = pending.filter(x => !(x.type === "期限" && !x.sent && itemKey(x.kubun, x.kigo, x.bango) === itemKey(it.kubun, it.kigo, it.bango)));
-    pending.push({ id:Date.now().toString(36), type:"期限", kubun:it.kubun, kigo:it.kigo, bango:it.bango,
-                   kigen:formatDate(d), nensu:"", gas:"", kosei:"", seizo:"", source, at:nowText(), user, sent:false, sentAt:"" });
+  const draft = it.isNew && it.reg && !it.reg.sent;
+  if(names.length){
+    if(draft) applyRegFix(it, values);
+    else addFixes(it, values, names, document.getElementById("fx理由").value.trim(), user);
+  }
+  if(d){
+    if(draft){
+      // 送信前の新規登録は、登録内容の期限を直す
+      it.reg.kigen = formatDate(d); it.reg.source = document.getElementById("kigenSource").value; it.reg.at = nowText();
+    }else{
+      // 同じ容器の、まだ送っていない入力は置き換える
+      pending = pending.filter(x => !(x.type === "期限" && !x.sent && itemKey(x.kubun, x.kigo, x.bango) === itemKey(it.kubun, it.kigo, it.bango)));
+      pending.push({ id:Date.now().toString(36), type:"期限", kubun:it.kubun, kigo:it.kigo, bango:it.bango,
+                     kigen:formatDate(d), nensu:"", gas:"", kosei:"", seizo:"", source:document.getElementById("kigenSource").value, at:nowText(), user, sent:false, sentAt:"" });
+    }
   }
   saveJson(PENDING_KEY, pending);
-  showToast("送信待ちに入れました");
+  const parts = [];
+  if(d) parts.push("耐圧期限");
+  if(names.length) parts.push(`内容${names.length}項目`);
+  showToast(draft ? `新規登録の${parts.join("と")}を直しました` : `${parts.join("と")}を送信待ちに入れました`);
   renderAll();
   renderDetail(findAny(it.kubun, it.kigo, it.bango) || it);
 }
