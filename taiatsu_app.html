@@ -1852,10 +1852,10 @@ function goToSearch(){
 
 document.getElementById("navListButton").addEventListener("click", goToList);
 document.getElementById("navSearchButton").addEventListener("click", () => {
-  // 開くたびに、ガス種は酸素から始める
+  // 開くたびに、ガス種は酸素、区分はカードルから始める
   document.getElementById("fGas").innerHTML = '<option value="酸素">酸素</option>';
   document.getElementById("fGas").value = "酸素";
-  document.getElementById("fKubun").value = "";
+  document.getElementById("fKubun").value = "cardle";
   document.getElementById("fKigo").value = "";
   document.getElementById("fBango").value = "";
   clearSearchInputs();
