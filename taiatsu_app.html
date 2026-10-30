@@ -1861,7 +1861,8 @@ document.getElementById("navSearchButton").addEventListener("click", () => {
   clearSearchInputs();
   goToSearch();
   runFilter();
-  document.getElementById("sKigo").focus();
+  // カーソルは記号の選択欄に置く（キーボードを出さない）
+  document.getElementById("fKigo").focus();
 });
 
 function renderAll(){
