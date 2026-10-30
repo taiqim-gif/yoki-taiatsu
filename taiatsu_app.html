@@ -330,6 +330,8 @@
       <div class="msg" id="importMessage"></div>
     </div>
 
+    <div class="field" style="margin-bottom:8px;"><label for="lGas">ガス種</label><select id="lGas"></select></div>
+
     <div class="mode-switch" id="kindSwitch">
       <button class="mode-switch-btn active" data-kind="all">すべて</button>
       <button class="mode-switch-btn" data-kind="vessel">ベッセル</button>
@@ -373,10 +375,13 @@
     <div class="card">
       <div class="row-gap">
         <div class="field"><label for="fGas">ガス種</label><select id="fGas"></select></div>
+        <div class="field"><label for="fKubun">区分</label><select id="fKubun"><option value="">すべて</option><option value="cardle">カードル</option><option value="vessel">ベッセル</option></select></div>
+      </div>
+      <div class="row-gap">
         <div class="field"><label for="fKigo">記号</label><select id="fKigo"></select></div>
         <div class="field"><label for="fBango">番号</label><select id="fBango"></select></div>
       </div>
-      <p class="note" style="margin:-6px 0 12px;">ガス種を選ぶとその記号だけ、記号を選ぶとその番号だけが出ます。</p>
+      <p class="note" style="margin:-6px 0 12px;">ガス種と区分を選ぶとその記号だけ、記号を選ぶとその番号だけが出ます。</p>
       <div class="row-gap">
         <div class="field">
           <label for="sKigo">または記号（英数字）</label>
@@ -948,10 +953,19 @@ function listViews(){
   return allItems().filter(it => it.kubun !== "バラ瓶").map(viewOf);
 }
 
-function kindMatch(v){
-  if(viewKind === "all") return true;
-  if(viewKind === "cardle") return isCardleKubun(v.item.kubun);
-  return !isCardleKubun(v.item.kubun);
+// 区分の絞り込み（"cardle"＝カードル、"vessel"＝カードル以外すべて、それ以外＝すべて）
+function kubunMatch(it, kind){
+  if(kind === "cardle") return isCardleKubun(it.kubun);
+  if(kind === "vessel") return !isCardleKubun(it.kubun);
+  return true;
+}
+
+function kindMatch(v){ return kubunMatch(v.item, viewKind); }
+
+// 一覧のガス種（空欄＝すべて）
+function gasMatch(v){
+  const g = document.getElementById("lGas").value;
+  return !g || withFixes(v.item).e.gas === g;
 }
 
 // 入力済の期限 → 予想耐圧期限 → どちらもない の順（入力済と予想は混ぜない）
@@ -990,7 +1004,8 @@ function renderList(){
     ? `一覧 ${store.items.filter(i => i.kubun !== "バラ瓶").length}件（${store.importedAt.slice(5, 10)} 取り込み）`
     : "一覧：未取り込み";
 
-  const views = listViews().filter(kindMatch);
+  fillGasOptions(document.getElementById("lGas"), filterPool());
+  const views = listViews().filter(v => gasMatch(v) && kindMatch(v));
   const counts = { expired:0, soon:0, unknown:0, research:0, fill:0, notyet:0, all:views.length };
   views.forEach(v => {
     v.mark = inputMarkOf(v.item);
@@ -1056,6 +1071,8 @@ document.querySelectorAll("#kindSwitch .mode-switch-btn").forEach(btn => {
   });
 });
 
+document.getElementById("lGas").addEventListener("change", renderList);
+
 document.querySelectorAll("#statusChips .chip").forEach(chip => {
   chip.addEventListener("click", () => {
     viewStatus = chip.dataset.status;
@@ -1108,7 +1125,7 @@ function runSearch(){
   renderHits(hits);
 }
 
-// ガス種 → 記号 → 番号 の絞り込み（カードル・ベッセル。新規登録も含む）
+// ガス種 → 区分 → 記号 → 番号 の絞り込み（カードル・ベッセル。新規登録も含む）
 function filterPool(){ return allItems().filter(it => it.kubun !== "バラ瓶"); }
 
 function setOptions(sel, values, label){
@@ -1132,8 +1149,8 @@ function fillFilters(){
   const gasSel = document.getElementById("fGas"), kigoSel = document.getElementById("fKigo"), bangoSel = document.getElementById("fBango");
   const pool = filterPool();
   fillGasOptions(gasSel, pool);
-  const g = gasSel.value;
-  const byGas = pool.filter(it => !g || withFixes(it).e.gas === g);
+  const g = gasSel.value, kind = document.getElementById("fKubun").value;
+  const byGas = pool.filter(it => (!g || withFixes(it).e.gas === g) && kubunMatch(it, kind));
   setOptions(kigoSel, [...new Set(byGas.map(it => it.kigo))].sort(), "すべて");
   const k = kigoSel.value;
   setOptions(bangoSel, [...new Set(byGas.filter(it => !k || it.kigo === k).map(it => it.bango))].sort((a, b) => Number(a) - Number(b)), "すべて");
@@ -1141,15 +1158,16 @@ function fillFilters(){
 
 function runFilter(){
   fillFilters();
-  const g = document.getElementById("fGas").value, k = document.getElementById("fKigo").value, b = document.getElementById("fBango").value;
-  if(!g && !k && !b){ document.getElementById("searchResults").innerHTML = ""; setSearchMessage(""); return; }
-  renderHits(filterPool().filter(it => (!g || withFixes(it).e.gas === g) && (!k || it.kigo === k) && (!b || it.bango === b)));
+  const g = document.getElementById("fGas").value, kind = document.getElementById("fKubun").value;
+  const k = document.getElementById("fKigo").value, b = document.getElementById("fBango").value;
+  if(!g && !kind && !k && !b){ document.getElementById("searchResults").innerHTML = ""; setSearchMessage(""); return; }
+  renderHits(filterPool().filter(it => (!g || withFixes(it).e.gas === g) && kubunMatch(it, kind) && (!k || it.kigo === k) && (!b || it.bango === b)));
 }
 
-["fGas", "fKigo", "fBango"].forEach((id, i) => {
+["fGas", "fKubun", "fKigo", "fBango"].forEach((id, i) => {
   document.getElementById(id).addEventListener("change", () => {
-    if(i === 0){ document.getElementById("fKigo").value = ""; document.getElementById("fBango").value = ""; }
-    if(i === 1){ document.getElementById("fBango").value = ""; }
+    if(i <= 1){ document.getElementById("fKigo").value = ""; document.getElementById("fBango").value = ""; }
+    if(i === 2){ document.getElementById("fBango").value = ""; }
     clearSearchInputs();
     runFilter();
   });
@@ -1837,6 +1855,7 @@ document.getElementById("navSearchButton").addEventListener("click", () => {
   // 開くたびに、ガス種は酸素から始める
   document.getElementById("fGas").innerHTML = '<option value="酸素">酸素</option>';
   document.getElementById("fGas").value = "酸素";
+  document.getElementById("fKubun").value = "";
   document.getElementById("fKigo").value = "";
   document.getElementById("fBango").value = "";
   clearSearchInputs();
