@@ -302,6 +302,13 @@
   .wx-speed button.on{ background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
   .wx-btns{ display:flex; gap:10px; margin-top:12px; }
   .wx-btns .btn{ margin:0; }
+  /* 耐圧年数の説明（「？くわしく」を押すと開く） */
+  .nensu-help{ margin:4px 0 0; }
+  .nensu-help summary{ display:inline-block; font-size:12px; font-weight:700; color:var(--lavender-ink); background:var(--lavender); border-radius:999px; padding:2px 10px; cursor:pointer; list-style:none; }
+  .nensu-help summary::-webkit-details-marker{ display:none; }
+  .nensu-table{ width:100%; border-collapse:collapse; margin-top:4px; font-size:12px; }
+  .nensu-table th, .nensu-table td{ border:1px solid var(--line); padding:4px 6px; text-align:left; }
+  .nensu-table th{ background:#F6F1E8; }
 </style>
 </head>
 <body>
@@ -450,18 +457,15 @@
           <label for="cdEigyo">営業所</label>
           <select id="cdEigyo"></select>
         </div>
-        <div class="field reg-cardle">
-          <label for="cdNensu">耐圧年数</label>
-          <select id="cdNensu">
-            <option value="">分からない</option>
-            <option value="3">3年</option>
-            <option value="5">5年</option>
-          </select>
-        </div>
         <div class="field reg-vessel">
           <label for="cdShoyu">所有者</label>
           <select id="cdShoyu"></select>
         </div>
+      </div>
+      <div class="field">
+        <label for="cdNensu">耐圧年数（分からなければそのまま。表で決まるときは表が優先）</label>
+        <select id="cdNensu"></select>
+        <div id="cdNensuHelp"></div>
       </div>
       <div class="field">
         <label for="cdKigen">次回の耐圧期限（分かれば。数字でも可：20290930、202909＝月末）</label>
@@ -751,7 +755,8 @@ const IMPORT_COLUMNS = {
   cKigo:["カードル記号"], cBango:["カードル番号"], kijun:["期限の基準"], kumikomi:["組込本数"],
   ownKigen:["カードル入力期限"], shoyu:["所有者"], biko:["備考"], yoryoNum:["容量"], tani:["単位"],
   source:["期限の出所"], yoso:["予想耐圧期限"], yosoKijun:["予想の基準"], jotai:["状態"],
-  phoneAt:["スマホ入力日"], phoneUser:["スマホ入力者"]
+  phoneAt:["スマホ入力日"], phoneUser:["スマホ入力者"],
+  sentaku:["耐圧年数_選択"], tableNensu:["表の耐圧年数"]
 };
 
 function buildItems(rows){
@@ -781,7 +786,8 @@ function buildItems(rows){
       ownKigen:formatDate(parseDate(get(r, "ownKigen"))),
       shoyu:get(r, "shoyu"), biko:get(r, "biko"), yoryoNum:get(r, "yoryoNum"), tani:get(r, "tani"),
       source:get(r, "source"), yoso:formatDate(parseDate(get(r, "yoso"))), yosoKijun:get(r, "yosoKijun"),
-      jotai:get(r, "jotai"), phoneAt:formatDate(parseDate(get(r, "phoneAt"))), phoneUser:get(r, "phoneUser")
+      jotai:get(r, "jotai"), phoneAt:formatDate(parseDate(get(r, "phoneAt"))), phoneUser:get(r, "phoneUser"),
+      sentaku:get(r, "sentaku"), tableNensu:col.tableNensu >= 0 ? get(r, "tableNensu") : null
     });
   });
   return items;
@@ -851,7 +857,7 @@ function itemFromReg(p){
   return { kubun:regKubun(p), kigo:p.kigo, bango:p.bango, gas:p.gas || "",
     yoryo:isC ? (p.kosei || "") : (p.yoryoNum ? p.yoryoNum + (p.tani || "") : ""), yoryoNum:p.yoryoNum || "", tani:p.tani || "",
     eigyo:p.eigyo || "", shoyu:p.shoyu || "", seizoY:p.seizo || "", seizoM:p.seizoM || "", seizoEst:"",
-    kigen:p.kigen || "", ownKigen:isC ? (p.kigen || "") : "", nensu:p.nensu || "", cKigo:p.cKigo || "", cBango:p.cBango || "",
+    kigen:p.kigen || "", ownKigen:isC ? (p.kigen || "") : "", nensu:p.nensu || "", sentaku:p.nensu || "", tableNensu:null, cKigo:p.cKigo || "", cBango:p.cBango || "",
     source:p.source || "", biko:"", jotai:"", isNew:true, reg:p };
 }
 
@@ -1284,8 +1290,48 @@ function renderDetail(it){
    直した項目ごとに送信待ちを1件作る。Access では「訂正」として取り込み、訂正履歴に残す。
 ========================================================= */
 
-const FIX_ITEMS_CONTAINER = ["製造年","製造月","ガス種","容量","営業所","所有者","備考"];
-const FIX_ITEMS_CARDLE = ["製造年","製造月","ガス種","営業所","備考"];
+const FIX_ITEMS_CONTAINER = ["製造年","製造月","ガス種","容量","営業所","所有者","備考","耐圧年数"];
+const FIX_ITEMS_CARDLE = ["製造年","製造月","ガス種","営業所","備考","耐圧年数"];
+// スマホで選べる耐圧年数（空欄＝分からない）
+const NENSU_CHOICES = { "カードル":["3","5"], "ベッセル":["1","2","3","5"], "炭酸ベッセル":["1","2","3","5"] };
+
+function nensuOptionsHtml(kubun, current){
+  const list = (NENSU_CHOICES[kubun] || []).slice();
+  if(current && !list.includes(current)) list.push(current);
+  return '<option value="">分からない</option>' +
+    list.map(n => `<option value="${escapeHtml(n)}"${n === current ? " selected" : ""}>${escapeHtml(n)}年</option>`).join("");
+}
+
+// 耐圧年数を知らない人向けの説明（Access の表 M_耐圧年数 と同じ決まり。法令が変わったら両方直す）
+function nensuHelpHtml(kubun){
+  const isC = isCardleKubun(kubun);
+  const rows = isC
+    ? [["1989/3/31以前", "－", "3年"],
+       ["1989/4/1以降", "－", "5年"]]
+    : [["1989/3/31以前", "15年未満", "3年"],
+       ["1989/3/31以前", "15年以上20年未満", "2年"],
+       ["1989/3/31以前", "20年以上", "1年"],
+       ["1989/4/1以降", "20年未満", "5年"],
+       ["1989/4/1以降", "20年以上", "2年"]];
+  return `<p class="note" style="margin:4px 0 0;">耐圧年数＝耐圧検査（再検査）から次の検査までの年数です。製造日と、検査のときの製造後の年数で決まります。</p>
+    <details class="nensu-help"><summary>？耐圧年数の決まり</summary>
+      <div class="note" style="margin-top:6px;"><b>${isC ? "カードル（中のシームレス容器）" : "ベッセル・炭酸ベッセル（可搬式超低温容器）"}</b></div>
+      <table class="nensu-table"><tr><th>製造日</th><th>製造後の年数</th><th>耐圧年数</th></tr>
+        ${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}
+      </table>
+      <p class="note" style="margin:4px 0 0;">1989/4/1～1998/3/31に製造した容器は、1998/3/31までの検査では3年${isC ? "" : "（製造後15年未満）"}でした。刻印「3-89」までが1989/3/31以前の製造です。出典：「容器の再検査期間」（Accessの耐圧年数の表と同じ）。</p>
+    </details>`;
+}
+
+// 「表では○年」の案内。表で1つに決まるときは表が優先、決まらないときは選んだ年数を使う
+function tableNensuNote(it){
+  if(isCardleKubun(it.kubun) && /^バラ瓶/.test(it.kijun || "")) return "期限は中のバラ瓶で決まるので、この欄はバラ瓶がないときに使います。";
+  if(it.tableNensu == null) return "";
+  const t = String(it.tableNensu);
+  if(!t) return "表に当てはまる行がありません。";
+  if(!t.includes("・")) return `表では${t}年です（表が優先されます）。`;
+  return `表では${t.split("・").join("年か")}年です。表だけでは決まらないので、ここで選んだ年数を使います。`;
+}
 const EIGYO_OPTIONS = ["札幌","苫小牧","釧路"];
 const SHOYU_OPTIONS = ["自社","昭和電工"];
 const TANI_OPTIONS = ["㎥","kg","L"];
@@ -1302,6 +1348,7 @@ function accessValue(it, name){
     case "営業所": return it.eigyo || "";
     case "所有者": return it.shoyu || "";
     case "備考": return it.biko || "";
+    case "耐圧年数": return it.sentaku || "";
   }
   return "";
 }
@@ -1337,6 +1384,7 @@ function withFixes(it){
     if(name === "営業所") e.eigyo = val;
     if(name === "所有者") e.shoyu = val;
     if(name === "備考") e.biko = val;
+    if(name === "耐圧年数") e.sentaku = val;
   });
   return { e, fixed };
 }
@@ -1383,6 +1431,8 @@ function fixFormHtml(it, e){
         <div class="field"><label for="fx単位">単位</label><select id="fx単位">${optionsHtml(TANI_OPTIONS, e.tani || "", !e.tani)}</select></div>
       </div>
       <div class="field"><label for="fx所有者">所有者</label><select id="fx所有者">${optionsHtml(SHOYU_OPTIONS, e.shoyu || "", !e.shoyu)}</select></div>`}
+      ${it.kubun === "バラ瓶" ? "" : `<div class="field"><label for="fx耐圧年数">耐圧年数（分からなければ「分からない」）</label><select id="fx耐圧年数">${nensuOptionsHtml(it.kubun, String(e.sentaku || ""))}</select>
+        ${tableNensuNote(it) ? `<p class="note" style="margin:4px 0 0;">${escapeHtml(tableNensuNote(it))}</p>` : ""}${nensuHelpHtml(it.kubun)}</div>`}
       <div class="field"><label for="fx備考">備考</label><input type="text" id="fx備考" value="${escapeHtml(e.biko || "")}" autocomplete="off"></div>
       <div class="field"><label for="fx理由">理由（任意。例：刻印で確認）</label><input type="text" id="fx理由" autocomplete="off"></div>
       <p class="note" style="margin:0;">直した項目だけを送ります。Accessでは確認画面で「確定」したときに直り、訂正履歴に残ります。</p>
@@ -1399,6 +1449,7 @@ function readFixForm(it){
   if(gasEl && !gasEl.disabled) out["ガス種"] = gasEl.value;
   out["営業所"] = val("fx営業所");
   out["備考"] = val("fx備考");
+  if(document.getElementById("fx耐圧年数")) out["耐圧年数"] = val("fx耐圧年数");
   if(!isCardleKubun(it.kubun)){
     const num = val("fx容量").normalize("NFKC");
     out["容量"] = num ? String(Number(num)) + (val("fx単位") || "") : "";
@@ -1425,7 +1476,7 @@ function addFixes(it, values, names, reason, user){
     pending = pending.filter(p => !(p.type === "訂正" && !p.sent && p.item === name && itemKey(p.kubun, p.kigo, p.bango) === key));
     if(after !== accessValue(it, name)){
       pending.push({ id:Date.now().toString(36) + name, type:"訂正", kubun:it.kubun, kigo:it.kigo, bango:it.bango,
-                     kigen:"", nensu:"", gas:"", kosei:"", seizo:"", item:name, before:accessValue(it, name), after, reason,
+                     kigen:"", nensu:name === "耐圧年数" ? after : "", gas:"", kosei:"", seizo:"", item:name, before:accessValue(it, name), after, reason,
                      at:nowText(), user, sent:false, sentAt:"" });
     }
   });
@@ -1438,6 +1489,7 @@ function applyRegFix(it, values){
   if(values["製造月"] != null) p.seizoM = values["製造月"];
   if(values["営業所"] != null) p.eigyo = values["営業所"];
   if(values["所有者"] != null) p.shoyu = values["所有者"];
+  if(values["耐圧年数"] != null) p.nensu = values["耐圧年数"];
   if(values["容量"] != null){ const y = splitYoryo(values["容量"]); p.yoryoNum = y.num; p.tani = y.tani; }
   if(values["ガス種"] && values["ガス種"] !== p.gas){
     p.gas = values["ガス種"];
@@ -1532,6 +1584,8 @@ function setRegKind(kind){
   document.querySelectorAll("#regKindSwitch .mode-switch-btn").forEach(b => b.classList.toggle("active", b.dataset.reg === kind));
   document.querySelectorAll("#cardleScreen .reg-cardle").forEach(el => el.classList.toggle("hidden", !isC));
   document.querySelectorAll("#cardleScreen .reg-vessel").forEach(el => el.classList.toggle("hidden", isC));
+  document.getElementById("cdNensu").innerHTML = nensuOptionsHtml(kind, "");
+  document.getElementById("cdNensuHelp").innerHTML = nensuHelpHtml(kind);
   const gases = REG_GAS[kind];
   document.getElementById("cdGas").innerHTML = (gases.length > 1 ? '<option value="">選ぶ</option>' : "") + gases.map(g => `<option>${g}</option>`).join("");
   document.getElementById("cdKigo").placeholder = isC ? "例：BN" : kind === "炭酸ベッセル" ? "例：T" : "例：N";
@@ -1605,7 +1659,7 @@ document.getElementById("cdSaveButton").addEventListener("click", () => {
   const base = { id:Date.now().toString(36), kigo, bango, kigen:formatDate(kigen), gas, seizo, seizoM, eigyo, source:kigen ? source : "",
                  at:nowText(), user, sent:false, sentAt:"" };
   if(isC) pending.push(Object.assign(base, { type:"カードル登録", kubun:"カードル", kosei, nensu }));
-  else pending.push(Object.assign(base, { type:"容器登録", kubun:regKind, yoryoNum:yoryo, tani:yoryo ? "㎥" : "", shoyu }));
+  else pending.push(Object.assign(base, { type:"容器登録", kubun:regKind, yoryoNum:yoryo, tani:yoryo ? "㎥" : "", shoyu, nensu }));
   saveJson(PENDING_KEY, pending);
   showToast(`${kigo}-${bango} を送信待ちに入れました`);
   renderAll();
